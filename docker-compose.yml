@@ -1,0 +1,106 @@
+name: hms
+
+x-app-env: &app-env
+  APP_ENV: ${APP_ENV:-production}
+  DB_CONNECTION: mysql
+  DB_HOST: mysql
+  DB_PORT: 3306
+  DB_DATABASE: ${DB_DATABASE:-hms}
+  DB_USERNAME: ${DB_USERNAME:-hms}
+  DB_PASSWORD: ${DB_PASSWORD:-secret}
+  REDIS_CLIENT: predis
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  CACHE_STORE: redis
+  SESSION_DRIVER: redis
+  QUEUE_CONNECTION: redis
+
+x-app-base: &app-base
+  image: hms-app:local
+  volumes:
+    - ./storage:/var/www/html/storage
+  env_file: .env
+  depends_on:
+    mysql:
+      condition: service_healthy
+    redis:
+      condition: service_started
+  networks: [hms]
+
+services:
+  app:
+    <<: *app-base
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: app
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - ./public:/var/www/html/public:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks: [hms]
+
+  queue:
+    <<: *app-base
+    restart: unless-stopped
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+    environment:
+      <<: *app-env
+
+  horizon:
+    <<: *app-base
+    restart: unless-stopped
+    command: ["php", "artisan", "horizon"]
+    environment:
+      <<: *app-env
+    stop_grace_period: 30s
+
+  scheduler:
+    <<: *app-base
+    restart: unless-stopped
+    entrypoint: ["sh", "-c", "while true; do php artisan schedule:run; sleep 60; done"]
+    environment:
+      <<: *app-env
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-hms}
+      MYSQL_USER: ${DB_USERNAME:-hms}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-secret}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-secret}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [hms]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1"]
+    volumes:
+      - redis-data:/data
+    networks: [hms]
+
+networks:
+  hms:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:
