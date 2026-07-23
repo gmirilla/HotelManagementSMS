@@ -57,4 +57,12 @@ class Tenant extends Model
     {
         return $this->hasMany(CorporateAccount::class);
     }
+
+    /**
+     * @return HasMany<Supplier, $this>
+     */
+    public function suppliers(): HasMany
+    {
+        return $this->hasMany(Supplier::class);
+    }
 }

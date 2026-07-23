@@ -357,7 +357,7 @@ erDiagram
     }
 ```
 
-A room with an open `MAINTENANCE_WORK_ORDERS` row flagged `is_blocking = true` (derived from priority, not a stored column) is excluded from availability by the Reservation module's availability query (FR-MAINT-005) — implemented as a scope joining this table, not a denormalized flag on `ROOMS`, so the two never drift out of sync.
+Per FR-MAINT-005, a room is excluded from availability only while `ROOMS.status = 'out_of_order'` — not merely for having an open work order. Most work orders (a squeaky door, a slow drain) don't warrant pulling a room from inventory, so blocking is an explicit staff decision at creation time, not an automatic consequence of any open ticket. `CreateMaintenanceWorkOrderAction` sets the room's status to `out_of_order` only when the reporting staff member says so (a `take_room_out_of_order` flag on the action, not a stored column); `VerifyMaintenanceWorkOrderAction` is the only path that clears it, and only once no other open/in-progress work order still blocks the same room.
 
 ## 7. Restaurant & POS
 

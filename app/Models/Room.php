@@ -66,6 +66,30 @@ class Room extends Model
         return $this->hasMany(RoomStatusLog::class);
     }
 
+    /**
+     * @return HasMany<HousekeepingTask, $this>
+     */
+    public function housekeepingTasks(): HasMany
+    {
+        return $this->hasMany(HousekeepingTask::class);
+    }
+
+    /**
+     * @return HasMany<MaintenanceWorkOrder, $this>
+     */
+    public function maintenanceWorkOrders(): HasMany
+    {
+        return $this->hasMany(MaintenanceWorkOrder::class);
+    }
+
+    /**
+     * FR-MAINT-005: a room is excluded from availability only while its
+     * status is explicitly "Out of Order" — not merely because it has an
+     * open work order. Most work orders (a squeaky door, a slow drain) don't
+     * warrant pulling a room from inventory; CreateMaintenanceWorkOrderAction
+     * flips the room to Out of Order only when staff explicitly say so, and
+     * VerifyMaintenanceWorkOrderAction is the only path that clears it.
+     */
     public function isBookable(): bool
     {
         return $this->is_active && $this->status->isBookable();

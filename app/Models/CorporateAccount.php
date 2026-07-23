@@ -43,4 +43,12 @@ class CorporateAccount extends Model
     {
         return $this->hasMany(Reservation::class);
     }
+
+    /**
+     * @return HasMany<ArEntry, $this>
+     */
+    public function arEntries(): HasMany
+    {
+        return $this->hasMany(ArEntry::class);
+    }
 }

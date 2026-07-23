@@ -22,8 +22,64 @@
                             <a href="{{ route('front-desk.index') }}" class="hover:text-indigo-600">Front Desk</a>
                             <a href="{{ route('reservations.index') }}" class="hover:text-indigo-600">Reservations</a>
                             <a href="{{ route('guests.index') }}" class="hover:text-indigo-600">Guests</a>
-                            <a href="{{ route('rooms.index') }}" class="hover:text-indigo-600">Rooms</a>
-                            <a href="{{ route('room-types.index') }}" class="hover:text-indigo-600">Room Types</a>
+
+                            <div x-data="{ open: false }" class="relative">
+                                <button @click="open = ! open" @click.outside="open = false" class="flex items-center gap-1 hover:text-indigo-600">
+                                    Operations
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div x-show="open" x-cloak class="absolute left-0 z-10 mt-2 w-48 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
+                                    <a href="{{ route('rooms.index') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Rooms</a>
+                                    <a href="{{ route('room-types.index') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Room Types</a>
+                                    <a href="{{ route('housekeeping.index') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Housekeeping</a>
+                                    <a href="{{ route('maintenance.index') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Maintenance</a>
+                                </div>
+                            </div>
+
+                            <div x-data="{ open: false }" class="relative">
+                                <button @click="open = ! open" @click.outside="open = false" class="flex items-center gap-1 hover:text-indigo-600">
+                                    Restaurant &amp; Inventory
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div x-show="open" x-cloak class="absolute left-0 z-10 mt-2 w-48 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
+                                    <a href="{{ route('restaurant.pos') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">POS</a>
+                                    <a href="{{ route('restaurant.kitchen') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Kitchen Display</a>
+                                    <a href="{{ route('restaurant.menu') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Menu</a>
+                                    <a href="{{ route('inventory.index') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Inventory</a>
+                                    <a href="{{ route('purchase-orders.index') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Purchase Orders</a>
+                                </div>
+                            </div>
+
+                            <div x-data="{ open: false }" class="relative">
+                                <button @click="open = ! open" @click.outside="open = false" class="flex items-center gap-1 hover:text-indigo-600">
+                                    Accounting
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div x-show="open" x-cloak class="absolute left-0 z-10 mt-2 w-48 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
+                                    <a href="{{ route('accounting.chart-of-accounts') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Chart of Accounts</a>
+                                    <a href="{{ route('accounting.journal-entries') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Journal Entries</a>
+                                    <a href="{{ route('accounting.reports') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Financial Reports</a>
+                                    <a href="{{ route('accounting.cashbook') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Cashbook</a>
+                                    <a href="{{ route('accounting.ar-ap') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Receivables &amp; Payables</a>
+                                    <a href="{{ route('accounting.tax-rules') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Tax Rules</a>
+                                </div>
+                            </div>
+
+                            <div x-data="{ open: false }" class="relative">
+                                <button @click="open = ! open" @click.outside="open = false" class="flex items-center gap-1 hover:text-indigo-600">
+                                    HR
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div x-show="open" x-cloak class="absolute left-0 z-10 mt-2 w-48 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
+                                    <a href="{{ route('hr.employees') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Employees</a>
+                                    <a href="{{ route('hr.attendance') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Attendance</a>
+                                    <a href="{{ route('hr.leave') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Leave</a>
+                                    <a href="{{ route('hr.payroll') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Payroll</a>
+                                    <a href="{{ route('hr.performance-reviews') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Performance Reviews</a>
+                                    <a href="{{ route('hr.disciplinary-records') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Disciplinary Records</a>
+                                    <a href="{{ route('hr.recruitment') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Recruitment</a>
+                                </div>
+                            </div>
                         </div>
 
                         @if (auth()->user()->currentBranch)
