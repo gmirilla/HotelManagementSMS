@@ -16,9 +16,18 @@
                         <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold text-sm">H</div>
                         <span class="font-semibold text-slate-800">{{ config('app.name') }}</span>
                     </a>
+
                     @auth
+                        <div class="hidden items-center gap-4 text-sm text-slate-600 md:flex">
+                            <a href="{{ route('front-desk.index') }}" class="hover:text-indigo-600">Front Desk</a>
+                            <a href="{{ route('reservations.index') }}" class="hover:text-indigo-600">Reservations</a>
+                            <a href="{{ route('guests.index') }}" class="hover:text-indigo-600">Guests</a>
+                            <a href="{{ route('rooms.index') }}" class="hover:text-indigo-600">Rooms</a>
+                            <a href="{{ route('room-types.index') }}" class="hover:text-indigo-600">Room Types</a>
+                        </div>
+
                         @if (auth()->user()->currentBranch)
-                            <span class="hidden rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 sm:inline-block">
+                            <span class="hidden rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 lg:inline-block">
                                 {{ auth()->user()->currentBranch->name }}
                             </span>
                         @endif

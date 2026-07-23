@@ -29,11 +29,12 @@ class RolePermissionSeeder extends Seeder
         'General Manager' => [
             'reservations.manage', 'rooms.manage', 'guests.manage', 'housekeeping.manage',
             'maintenance.manage', 'restaurant.manage', 'inventory.manage', 'accounting.view',
-            'hr.manage', 'reports.view', 'users.manage',
+            'hr.manage', 'reports.view', 'users.manage', 'folios.manage', 'folios.void',
         ],
         'Branch Manager' => [
             'reservations.manage', 'rooms.manage', 'guests.manage', 'housekeeping.manage',
-            'maintenance.manage', 'restaurant.manage', 'inventory.view', 'reports.view', 'folios.void',
+            'maintenance.manage', 'restaurant.manage', 'inventory.view', 'reports.view',
+            'folios.manage', 'folios.void',
         ],
         'Receptionist' => [
             'reservations.view', 'reservations.create', 'reservations.update',

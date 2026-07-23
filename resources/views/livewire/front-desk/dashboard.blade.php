@@ -1,0 +1,122 @@
+<div>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-xl font-semibold text-slate-900">Front Desk</h1>
+            @if ($this->activeBranch)
+                <p class="text-sm text-slate-500">{{ $this->activeBranch->name }} &middot; {{ now()->format('l, F j, Y') }}</p>
+            @endif
+        </div>
+
+        @if ($this->accessibleBranches->count() > 1)
+            <select wire:model.live="branchId" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                @foreach ($this->accessibleBranches as $branch)
+                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                @endforeach
+            </select>
+        @endif
+    </div>
+
+    @if ($checkoutError)
+        <div class="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{{ $checkoutError }}</div>
+    @endif
+
+    <div class="mb-6 flex gap-1 rounded-lg bg-slate-100 p-1 text-sm font-medium">
+        <button wire:click="$set('tab', 'arrivals')" @class(['flex-1 rounded-md py-2', 'bg-white shadow-sm text-slate-900' => $tab === 'arrivals', 'text-slate-500' => $tab !== 'arrivals'])>
+            Arrivals ({{ $this->arrivals->count() }})
+        </button>
+        <button wire:click="$set('tab', 'departures')" @class(['flex-1 rounded-md py-2', 'bg-white shadow-sm text-slate-900' => $tab === 'departures', 'text-slate-500' => $tab !== 'departures'])>
+            Departures ({{ $this->departures->count() }})
+        </button>
+        <button wire:click="$set('tab', 'in_house')" @class(['flex-1 rounded-md py-2', 'bg-white shadow-sm text-slate-900' => $tab === 'in_house', 'text-slate-500' => $tab !== 'in_house'])>
+            In-house ({{ $this->inHouse->count() }})
+        </button>
+    </div>
+
+    @if ($tab === 'arrivals')
+        <div class="space-y-3">
+            @forelse ($this->arrivals as $reservation)
+                <div class="rounded-lg border border-slate-200 bg-white p-4" wire:key="arrival-{{ $reservation->id }}">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-slate-800">{{ $reservation->guest->fullName() }}</p>
+                            <p class="text-sm text-slate-500">{{ $reservation->confirmation_code }} &middot; {{ $reservation->rooms->first()?->roomType?->name }}</p>
+                        </div>
+                        @can('update', $reservation)
+                            <button wire:click="startCheckIn({{ $reservation->id }})" class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500">
+                                Check in
+                            </button>
+                        @endcan
+                    </div>
+
+                    @if ($checkingInReservationId === $reservation->id)
+                        <div class="mt-4 border-t border-slate-100 pt-4">
+                            <x-input-label value="Assign room" />
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @forelse ($this->availableRoomsForCheckIn as $room)
+                                    <label @class([
+                                        'cursor-pointer rounded-md border px-3 py-1.5 text-sm',
+                                        'border-indigo-500 bg-indigo-50 text-indigo-700' => $selectedRoomId === $room->id,
+                                        'border-slate-200 text-slate-600' => $selectedRoomId !== $room->id,
+                                    ])>
+                                        <input type="radio" wire:model="selectedRoomId" value="{{ $room->id }}" class="sr-only">
+                                        {{ $room->room_number }}
+                                    </label>
+                                @empty
+                                    <p class="text-sm text-slate-500">No vacant rooms of this type right now.</p>
+                                @endforelse
+                            </div>
+                            <x-input-error :messages="$errors->get('selectedRoomId')" />
+
+                            <div class="mt-3 flex gap-3">
+                                <button wire:click="completeCheckIn" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">
+                                    Confirm check-in
+                                </button>
+                                <button wire:click="$set('checkingInReservationId', null)" class="text-sm text-slate-500 hover:text-slate-700">Cancel</button>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <p class="text-sm text-slate-500">No arrivals scheduled for today.</p>
+            @endforelse
+        </div>
+    @endif
+
+    @if ($tab === 'departures')
+        <div class="space-y-3">
+            @forelse ($this->departures as $reservation)
+                <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4" wire:key="departure-{{ $reservation->id }}">
+                    <div>
+                        <p class="font-medium text-slate-800">{{ $reservation->guest->fullName() }}</p>
+                        <p class="text-sm text-slate-500">
+                            Room {{ $reservation->rooms->first()?->room?->room_number }}
+                            @if ($reservation->folio)
+                                &middot; Balance ${{ number_format($reservation->folio->balance_cents / 100, 2) }}
+                            @endif
+                        </p>
+                    </div>
+                    @can('update', $reservation)
+                        <button wire:click="checkOut({{ $reservation->id }})" wire:confirm="Check out this guest?" class="rounded-md bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700">
+                            Check out
+                        </button>
+                    @endcan
+                </div>
+            @empty
+                <p class="text-sm text-slate-500">No departures due.</p>
+            @endforelse
+        </div>
+    @endif
+
+    @if ($tab === 'in_house')
+        <div class="space-y-3">
+            @forelse ($this->inHouse as $reservation)
+                <div class="rounded-lg border border-slate-200 bg-white p-4" wire:key="inhouse-{{ $reservation->id }}">
+                    <p class="font-medium text-slate-800">{{ $reservation->guest->fullName() }}</p>
+                    <p class="text-sm text-slate-500">Room {{ $reservation->rooms->first()?->room?->room_number }} &middot; until {{ $reservation->departure_date->format('M j, Y') }}</p>
+                </div>
+            @empty
+                <p class="text-sm text-slate-500">No guests currently in-house.</p>
+            @endforelse
+        </div>
+    @endif
+</div>

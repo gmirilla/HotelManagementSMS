@@ -21,7 +21,7 @@ class RoomTypeFactory extends Factory
         return [
             'branch_id' => Branch::factory(),
             'name' => $name,
-            'slug' => Str::slug($name),
+            'slug' => Str::slug($name) . '-' . fake()->unique()->numberBetween(1000, 9999),
             'base_capacity_adults' => fake()->numberBetween(1, 4),
             'base_capacity_children' => fake()->numberBetween(0, 2),
             'base_rate_cents' => fake()->numberBetween(8000, 45000),
