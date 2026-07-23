@@ -13,6 +13,7 @@ return RectorConfig::configure()
         __DIR__ . '/database',
         __DIR__ . '/routes',
         __DIR__ . '/tests',
+        __DIR__ . '/bootstrap/app.php',
     ])
     ->withSkip([
         __DIR__ . '/app/**/*.blade.php',

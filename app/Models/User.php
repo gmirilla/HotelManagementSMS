@@ -4,22 +4,24 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Override;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password', 'tenant_id', 'current_branch_id'])]
 #[Hidden(['password', 'remember_token', 'mfa_secret'])]
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable, SoftDeletes;
@@ -37,6 +39,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'mfa_enabled' => 'boolean',
             'mfa_secret' => 'encrypted',
+            'mfa_recovery_codes' => 'encrypted:array',
             'password_changed_at' => 'datetime',
             'locked_until' => 'datetime',
         ];
@@ -68,6 +71,14 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    /**
+     * @return HasMany<PasswordHistory, $this>
+     */
+    public function passwordHistories(): HasMany
+    {
+        return $this->hasMany(PasswordHistory::class);
+    }
+
     public function isLocked(): bool
     {
         return $this->locked_until !== null && $this->locked_until->isFuture();
@@ -80,5 +91,27 @@ class User extends Authenticatable
         }
 
         return $this->branches()->whereKey($branchId)->exists();
+    }
+
+    public function requiresMfa(): bool
+    {
+        $requiredRoles = config('security.mfa_required_roles', []);
+
+        return $this->mfa_enabled || ($requiredRoles !== [] && $this->hasAnyRole($requiredRoles));
+    }
+
+    public function isPasswordExpired(): bool
+    {
+        $expiryDays = (int) config('security.password_expiry_days', 0);
+
+        if ($expiryDays <= 0 || $this->password_changed_at === null) {
+            return false;
+        }
+
+        if ($this->hasAnyRole(config('security.password_expiry_exempt_roles', []))) {
+            return false;
+        }
+
+        return $this->password_changed_at->lt(Carbon::now()->subDays($expiryDays));
     }
 }

@@ -33,7 +33,7 @@ class RolePermissionSeeder extends Seeder
         ],
         'Branch Manager' => [
             'reservations.manage', 'rooms.manage', 'guests.manage', 'housekeeping.manage',
-            'maintenance.manage', 'restaurant.manage', 'inventory.view', 'reports.view',
+            'maintenance.manage', 'restaurant.manage', 'inventory.view', 'reports.view', 'folios.void',
         ],
         'Receptionist' => [
             'reservations.view', 'reservations.create', 'reservations.update',
@@ -58,7 +58,7 @@ class RolePermissionSeeder extends Seeder
             'restaurant.orders.view', 'restaurant.orders.update_kitchen_status',
         ],
         'Accountant' => [
-            'accounting.manage', 'reports.view', 'folios.view', 'payments.view',
+            'accounting.manage', 'reports.view', 'folios.view', 'payments.view', 'folios.void',
         ],
         'Cashier' => [
             'folios.manage', 'payments.process', 'payments.refund',

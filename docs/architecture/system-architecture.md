@@ -83,7 +83,7 @@ Each SRS module family (§3 of the SRS) maps to a namespace under `app/Domain/<M
 - **API:** Laravel Sanctum personal access tokens with **abilities** (scopes) matching the permission being exercised, so a token can be issued with a reduced capability set (e.g., a read-only reporting integration token).
 - **MFA:** TOTP-based, optional per user, enforceable per role via a `requires_mfa` flag resolved from the user's roles at login; verified via a dedicated `MfaChallenge` step in the login pipeline (a middleware-gated intermediate auth state, not a second unauthenticated request).
 - **RBAC:** Spatie `laravel-permission` for the role → permissions graph (global, not team-scoped — see §3). Every controller action/Livewire component authorizes via a Policy or `Gate::authorize`, never by hiding UI alone (NFR-SEC-008).
-- **Session security:** sessions stored in Redis; "log out everywhere" invalidates all of a user's session keys; failed-login counters and lockout state stored per-account (DB) and per-IP (Redis, via Laravel's rate limiter) independently, per FR-AUTH-006.
+- **Session security:** sessions use the `database` driver, not Redis — FR-AUTH-009 requires listing a user's active sessions with device/IP/last-active metadata and revoking them individually, which needs the `sessions` table's columns; Laravel's Redis session handler doesn't support per-user enumeration without extra bookkeeping that isn't justified at this scale. "Log out everywhere" deletes a user's other session rows directly. Failed-login counters and lockout state are stored per-account (DB) and per-IP (Redis, via Laravel's rate limiter) independently, per FR-AUTH-006.
 
 ## 5. Cross-Module Integration: Events & Listeners
 

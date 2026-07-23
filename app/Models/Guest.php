@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Override;
 
 #[Fillable([
-    'tenant_id', 'first_name', 'last_name', 'email', 'phone', 'date_of_birth',
+    'tenant_id', 'user_id', 'first_name', 'last_name', 'email', 'phone', 'date_of_birth',
     'nationality', 'guest_type', 'flag', 'blacklist_reason', 'preferences',
 ])]
 class Guest extends Model
@@ -42,6 +42,14 @@ class Guest extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**
