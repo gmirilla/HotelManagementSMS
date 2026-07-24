@@ -92,7 +92,7 @@
                         </td>
                         <td class="px-4 py-2 text-slate-600">{{ collect([$branch->city, $branch->country])->filter()->join(', ') ?: '—' }}</td>
                         <td class="px-4 py-2 text-slate-600">{{ $branch->currency }}</td>
-                        <td class="px-4 py-2 text-slate-600">{{ substr((string) $branch->check_in_time, 0, 5) }} / {{ substr((string) $branch->check_out_time, 0, 5) }}</td>
+                        <td class="px-4 py-2 text-slate-600">{{ $branch->check_in_time->format('H:i') }} / {{ $branch->check_out_time->format('H:i') }}</td>
                         <td class="px-4 py-2">
                             @if ($branch->is_active)
                                 <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Active</span>

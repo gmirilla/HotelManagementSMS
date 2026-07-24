@@ -91,9 +91,11 @@ class BranchManager extends Component
         $this->city = $branch->city ?? '';
         $this->country = $branch->country ?? '';
         // check_in_time/check_out_time use a `datetime:H:i:s` cast, which
-        // returns an already-formatted string, not a Carbon instance.
-        $this->checkInTime = substr((string) $branch->check_in_time, 0, 5);
-        $this->checkOutTime = substr((string) $branch->check_out_time, 0, 5);
+        // hydrates a Carbon instance anchored at today's date (TIME columns
+        // have no date of their own) — (string) casting it yields the full
+        // "Y-m-d H:i:s", not just the time, so ->format() is required.
+        $this->checkInTime = $branch->check_in_time->format('H:i');
+        $this->checkOutTime = $branch->check_out_time->format('H:i');
         $this->showForm = true;
     }
 

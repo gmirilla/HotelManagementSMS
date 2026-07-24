@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Admin;
 
 use App\Domain\Settings\Actions\UpdateHotelSettingsAction;
+use DateTimeZone;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -67,7 +68,7 @@ class HotelSettings extends Component
     {
         return view('livewire.admin.hotel-settings', [
             'tenant' => auth()->user()->tenant,
-            'timezones' => \DateTimeZone::listIdentifiers(),
+            'timezones' => DateTimeZone::listIdentifiers(),
         ]);
     }
 }

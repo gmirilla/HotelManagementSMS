@@ -56,9 +56,9 @@
                             <div class="mt-2 flex flex-wrap gap-2">
                                 @forelse ($this->availableRoomsForCheckIn as $room)
                                     <label @class([
-                                        'cursor-pointer rounded-md border px-3 py-1.5 text-sm',
-                                        'border-brand-500 bg-brand-50 text-brand-700' => $selectedRoomId === $room->id,
-                                        'border-slate-200 text-slate-600' => $selectedRoomId !== $room->id,
+                                        'cursor-pointer rounded-md border px-3 py-1.5 text-sm transition focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-1',
+                                        'border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-500/30' => $selectedRoomId === $room->id,
+                                        'border-slate-200 text-slate-600 hover:border-brand-300 hover:bg-brand-50/60 hover:text-brand-700' => $selectedRoomId !== $room->id,
                                     ])>
                                         <input type="radio" wire:model="selectedRoomId" value="{{ $room->id }}" class="sr-only">
                                         {{ $room->room_number }} &middot; {{ $room->roomType->name }}
@@ -139,9 +139,9 @@
                             <div class="mt-2 flex flex-wrap gap-2">
                                 @forelse ($this->availableRoomsForRoomChange as $room)
                                     <label @class([
-                                        'cursor-pointer rounded-md border px-3 py-1.5 text-sm',
-                                        'border-brand-500 bg-brand-50 text-brand-700' => $selectedNewRoomId === $room->id,
-                                        'border-slate-200 text-slate-600' => $selectedNewRoomId !== $room->id,
+                                        'cursor-pointer rounded-md border px-3 py-1.5 text-sm transition focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-1',
+                                        'border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-500/30' => $selectedNewRoomId === $room->id,
+                                        'border-slate-200 text-slate-600 hover:border-brand-300 hover:bg-brand-50/60 hover:text-brand-700' => $selectedNewRoomId !== $room->id,
                                     ])>
                                         <input type="radio" wire:model="selectedNewRoomId" value="{{ $room->id }}" class="sr-only">
                                         {{ $room->room_number }} &middot; {{ $room->roomType->name }}

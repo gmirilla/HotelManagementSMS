@@ -31,7 +31,7 @@ class UpdateHotelSettingsAction
             'default_timezone' => $defaultTimezone,
         ];
 
-        if ($logo !== null) {
+        if ($logo instanceof UploadedFile) {
             if ($tenant->logo_path !== null) {
                 Storage::disk('public')->delete($tenant->logo_path);
             }
