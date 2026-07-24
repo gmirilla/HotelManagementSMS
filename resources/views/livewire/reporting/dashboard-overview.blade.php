@@ -1,11 +1,66 @@
-<x-layouts.app title="Dashboard">
+<div>
     <div class="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 px-6 py-8 shadow-lg shadow-brand-900/20 sm:px-8">
-        <h1 class="text-xl font-semibold text-white sm:text-2xl">Welcome back, {{ auth()->user()->name }}</h1>
-        <p class="mt-2 max-w-2xl text-sm text-brand-100">
-            This is a placeholder landing page — the full occupancy/revenue/KPI dashboard (SRS §3.17, FR-RPT-005) is
-            built alongside the reporting module.
-        </p>
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <h1 class="text-xl font-semibold text-white sm:text-2xl">Welcome back, {{ auth()->user()->name }}</h1>
+                <p class="mt-2 max-w-2xl text-sm text-brand-100">
+                    {{ $this->activeBranch?->name ?? 'Your organization' }} &middot; {{ now()->format('l, F j, Y') }}
+                </p>
+            </div>
+
+            @if ($this->accessibleBranches->count() > 1)
+                <select wire:model.live="branchId" class="rounded-md border-0 bg-white/90 text-sm text-slate-800 shadow-sm focus:ring-2 focus:ring-white">
+                    @foreach ($this->accessibleBranches as $branch)
+                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                    @endforeach
+                </select>
+            @endif
+        </div>
     </div>
+
+    @can('reports.view')
+        <div class="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            <x-stat-tile label="Occupancy" :value="$this->occupancyRate . '%'" />
+            <x-stat-tile label="Arrivals today" :value="$this->arrivalsToday" />
+            <x-stat-tile label="Departures today" :value="$this->departuresToday" />
+            <x-stat-tile label="Pending housekeeping" :value="$this->pendingHousekeepingCount" />
+            <x-stat-tile label="Open maintenance" :value="$this->openMaintenanceCount" />
+            <x-stat-tile label="Restaurant sales today" :value="'$' . number_format($this->restaurantSalesTodayCents / 100, 2)" />
+            <x-stat-tile label="Outstanding invoices" :value="'$' . number_format($this->outstandingInvoicesCents / 100, 2)" />
+        </div>
+
+        <div class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-5">
+            <div class="rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-900/5 lg:col-span-3">
+                <h2 class="mb-4 font-medium text-slate-800">Revenue trend — last 14 days</h2>
+                @if (array_sum($this->revenueTrendChartData['datasets'][0]['data']) > 0)
+                    <x-chart
+                        wire:key="revenue-trend-chart-{{ $branchId }}"
+                        type="line"
+                        :labels="$this->revenueTrendChartData['labels']"
+                        :datasets="$this->revenueTrendChartData['datasets']"
+                        :options="['plugins' => ['legend' => ['display' => false]]]"
+                    />
+                @else
+                    <p class="py-16 text-center text-sm text-slate-500">No revenue posted in this window yet.</p>
+                @endif
+            </div>
+
+            <div class="rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-900/5 lg:col-span-2">
+                <h2 class="mb-4 font-medium text-slate-800">Room status</h2>
+                @if (array_sum($this->roomStatusChartData['datasets'][0]['data']) > 0)
+                    <x-chart
+                        wire:key="room-status-chart-{{ $branchId }}"
+                        type="doughnut"
+                        :labels="$this->roomStatusChartData['labels']"
+                        :datasets="$this->roomStatusChartData['datasets']"
+                        :options="['plugins' => ['legend' => ['position' => 'bottom', 'labels' => ['boxWidth' => 12, 'padding' => 12]]]]"
+                    />
+                @else
+                    <p class="py-16 text-center text-sm text-slate-500">No rooms configured for this branch yet.</p>
+                @endif
+            </div>
+        </div>
+    @endcan
 
     <h2 class="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
         <span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
@@ -275,4 +330,4 @@
             <span class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 opacity-0 transition group-hover:opacity-100">Open <span aria-hidden="true">&rarr;</span></span>
         </a>
     </div>
-</x-layouts.app>
+</div>

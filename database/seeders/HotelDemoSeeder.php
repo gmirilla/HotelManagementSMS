@@ -42,6 +42,8 @@ use App\Domain\Inventory\Enums\StockMovementType;
 use App\Domain\Maintenance\Enums\WorkOrderPriority;
 use App\Domain\Maintenance\Enums\WorkOrderStatus;
 use App\Domain\Procurement\Enums\PurchaseOrderStatus;
+use App\Domain\Reservation\Actions\CreateReservationAction;
+use App\Domain\Reservation\Enums\ReservationSource;
 use App\Domain\Restaurant\Enums\KitchenStatus;
 use App\Domain\Restaurant\Enums\OrderStatus;
 use App\Domain\Restaurant\Enums\OrderType;
@@ -326,13 +328,33 @@ class HotelDemoSeeder extends Seeder
             }
         });
 
-        // Upcoming, confirmed reservations.
+        // Upcoming, confirmed reservations — routed through
+        // CreateReservationAction (not a bare factory) so each one gets a
+        // real reservation_rooms row with a room type attached. A bare
+        // Reservation::factory()->create() has no room type at all, which
+        // front desk can't check in (CheckInGuestAction requires an
+        // existing reservation-room); with a randomized arrival_date that
+        // silently produced "arrivals today" the front desk could never
+        // actually seat. The first offset (0 days) guarantees a real,
+        // checkable-in arrival for today; the rest are staggered so they
+        // never compete with each other or the in-house stays above for the
+        // same room type's 5-room inventory.
         $branches->each(function (Branch $branch) use ($guests) {
-            foreach (range(1, 6) as $i) {
-                Reservation::factory()->create([
-                    'branch_id' => $branch->id,
-                    'guest_id' => $guests->random()->id,
-                ]);
+            $roomTypes = RoomType::where('branch_id', $branch->id)->orderBy('id')->get();
+
+            foreach ([0, 2, 4, 6, 8, 10] as $i => $offsetDays) {
+                $roomType = $roomTypes[$i % $roomTypes->count()];
+
+                app(CreateReservationAction::class)->handle(
+                    branchId: $branch->id,
+                    guestId: $guests->random()->id,
+                    roomType: $roomType,
+                    arrival: now()->addDays($offsetDays)->startOfDay(),
+                    departure: now()->addDays($offsetDays + 2)->startOfDay(),
+                    adults: fake()->numberBetween(1, 2),
+                    children: 0,
+                    source: ReservationSource::Online->value,
+                );
             }
         });
 
