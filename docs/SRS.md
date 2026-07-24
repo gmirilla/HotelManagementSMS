@@ -330,7 +330,7 @@ Each module below lists representative, testable requirements. This is the autho
 
 | ID | Requirement | Priority |
 |---|---|---|
-| FR-PAY-001 | Payments can be recorded via Stripe, PayPal, Flutterwave, Paystack, cash, POS terminal, or bank transfer, behind a common payment-gateway abstraction (Strategy pattern). | M |
+| FR-PAY-001 | Payments can be recorded via   Flutterwave, Paystack, cash, POS terminal, or bank transfer, behind a common payment-gateway abstraction (Strategy pattern). | M |
 | FR-PAY-002 | A single invoice can be settled by multiple payments/methods (split payment). | M |
 | FR-PAY-003 | Refunds are supported per payment method where the gateway allows it, requiring an elevated permission and reason code. | M |
 | FR-PAY-004 | Card data is never stored by HMS directly; gateway tokenization/hosted fields are used exclusively. | M |

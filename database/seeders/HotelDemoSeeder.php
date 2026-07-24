@@ -11,6 +11,20 @@ use App\Domain\Accounting\Enums\ArStatus;
 use App\Domain\Accounting\Enums\CashbookEntryType;
 use App\Domain\Accounting\Enums\JournalSide;
 use App\Domain\Accounting\Enums\TaxAppliesTo;
+use App\Domain\CRM\Actions\AssignGuestFeedbackAction;
+use App\Domain\CRM\Actions\EarnLoyaltyPointsAction;
+use App\Domain\CRM\Actions\LogGuestFeedbackAction;
+use App\Domain\CRM\Actions\RedeemLoyaltyPointsAction;
+use App\Domain\CRM\Actions\ResolveGuestFeedbackAction;
+use App\Domain\CRM\Enums\CouponDiscountType;
+use App\Domain\CRM\Enums\CouponScope;
+use App\Domain\CRM\Enums\FeedbackType;
+use App\Domain\CRM\Enums\MarketingCampaignChannel;
+use App\Domain\CRM\Enums\MarketingCampaignStatus;
+use App\Domain\Event\Actions\AddEventBookingItemAction;
+use App\Domain\Event\Actions\ConfirmEventBookingAction;
+use App\Domain\Event\Actions\CreateEventBookingAction;
+use App\Domain\Event\Enums\EventServiceCategory;
 use App\Domain\FrontDesk\Enums\ChargeType;
 use App\Domain\Housekeeping\Enums\HousekeepingTaskStatus;
 use App\Domain\Housekeeping\Enums\HousekeepingTaskType;
@@ -43,8 +57,11 @@ use App\Models\Branch;
 use App\Models\Candidate;
 use App\Models\CashbookEntry;
 use App\Models\CorporateAccount;
+use App\Models\Coupon;
 use App\Models\DisciplinaryRecord;
 use App\Models\Employee;
+use App\Models\EventService;
+use App\Models\EventSpace;
 use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\GuestContact;
@@ -57,6 +74,7 @@ use App\Models\LeaveBalance;
 use App\Models\LeaveType;
 use App\Models\LostFoundItem;
 use App\Models\MaintenanceWorkOrder;
+use App\Models\MarketingCampaign;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use App\Models\MenuItemIngredient;
@@ -129,6 +147,11 @@ class HotelDemoSeeder extends Seeder
         $corporateAccount = CorporateAccount::factory()->create([
             'tenant_id' => $tenant->id,
             'company_name' => 'Globex Travel Partners',
+        ]);
+
+        $travelAgentAccount = CorporateAccount::factory()->travelAgent()->create([
+            'tenant_id' => $tenant->id,
+            'company_name' => 'Sunset Travel Agency',
         ]);
 
         $rooms = collect();
@@ -348,6 +371,10 @@ class HotelDemoSeeder extends Seeder
 
         $branches->each(function (Branch $branch) use ($staffByBranch) {
             $this->seedHR($branch, $staffByBranch->get($branch->id));
+        });
+
+        $branches->each(function (Branch $branch) use ($staffByBranch, $guests, $corporateAccount, $travelAgentAccount) {
+            $this->seedCRMAndEvents($branch, $staffByBranch->get($branch->id), $guests, $corporateAccount, $travelAgentAccount);
         });
     }
 
@@ -822,6 +849,137 @@ class HotelDemoSeeder extends Seeder
         Candidate::create(['job_opening_id' => $opening->id, 'name' => 'Priya Nair', 'email' => 'priya.nair@example.test', 'stage' => 'interview']);
         Candidate::create(['job_opening_id' => $opening->id, 'name' => 'Marcus Webb', 'email' => 'marcus.webb@example.test', 'stage' => 'screening']);
         Candidate::create(['job_opening_id' => $opening->id, 'name' => 'Elena Popescu', 'email' => 'elena.popescu@example.test', 'stage' => 'applied']);
+    }
+
+    /**
+     * @param  array{branchManager: User, receptionist: User}  $staff
+     * @param  Collection<int, Guest>  $guests
+     */
+    private function seedCRMAndEvents(Branch $branch, array $staff, Collection $guests, CorporateAccount $corporateAccount, CorporateAccount $travelAgentAccount): void
+    {
+        // Guest feedback workflow: one open, one in-progress (assigned), one resolved.
+        $logFeedback = app(LogGuestFeedbackAction::class);
+
+        $logFeedback->handle($branch, $guests->random(), FeedbackType::Suggestion, 'More vegetarian breakfast options', 'A guest suggested adding more plant-based items to the breakfast buffet.');
+
+        $inProgressFeedback = $logFeedback->handle($branch, $guests->random(), FeedbackType::Complaint, 'Noisy air conditioning unit', 'Guest reported the AC unit in their room was unusually loud overnight.');
+        app(AssignGuestFeedbackAction::class)->handle($inProgressFeedback, $staff['receptionist']);
+
+        $resolvedFeedback = $logFeedback->handle($branch, $guests->random(), FeedbackType::Complaint, 'Late room service delivery', 'Room service took over an hour to arrive.');
+        app(AssignGuestFeedbackAction::class)->handle($resolvedFeedback, $staff['receptionist']);
+        app(ResolveGuestFeedbackAction::class)->handle($resolvedFeedback, 'Apologized to the guest and comped the order; kitchen staffing was adjusted for peak hours.');
+
+        // Loyalty: three guests demonstrating the three tiers.
+        $earnPoints = app(EarnLoyaltyPointsAction::class);
+        $redeemPoints = app(RedeemLoyaltyPointsAction::class);
+
+        $silverGuest = $guests[0];
+        $goldGuest = $guests[1];
+        $platinumGuest = $guests[2];
+
+        $earnPoints->handle($silverGuest, 450, 'Points earned on recent stay');
+        $earnPoints->handle($goldGuest, 6200, 'Points earned across multiple stays');
+        $earnPoints->handle($platinumGuest, 16500, 'Points earned as a long-time repeat guest');
+        $redeemPoints->handle($platinumGuest->loyaltyAccount()->first(), 2000, 'Redeemed for a complimentary room upgrade');
+
+        // Coupons: one active, one expired.
+        Coupon::create([
+            'branch_id' => $branch->id,
+            'code' => 'WELCOME10',
+            'name' => 'Welcome discount',
+            'discount_type' => CouponDiscountType::Percent,
+            'discount_value' => 10,
+            'scope' => CouponScope::All,
+            'valid_from' => now()->subDays(10)->toDateString(),
+            'valid_until' => now()->addMonths(3)->toDateString(),
+            'usage_limit' => 100,
+        ]);
+
+        Coupon::create([
+            'branch_id' => $branch->id,
+            'code' => 'SUMMERFEST',
+            'name' => 'Summer restaurant promotion',
+            'discount_type' => CouponDiscountType::Fixed,
+            'discount_value' => 1500,
+            'scope' => CouponScope::Restaurant,
+            'valid_from' => now()->subMonths(2)->toDateString(),
+            'valid_until' => now()->subDays(5)->toDateString(),
+            'is_active' => false,
+        ]);
+
+        MarketingCampaign::create([
+            'branch_id' => $branch->id,
+            'name' => 'Platinum tier exclusive offer',
+            'channel' => MarketingCampaignChannel::Email,
+            'segment_criteria' => ['loyalty_tier' => 'platinum'],
+            'message' => 'Enjoy a complimentary spa treatment on your next stay with us.',
+            'status' => MarketingCampaignStatus::Sent,
+            'sent_at' => now()->subDays(3),
+        ]);
+
+        // Event spaces, services, and two bookings — one confirmed with a
+        // consolidated bill, one still tentative.
+        $ballroom = EventSpace::create([
+            'branch_id' => $branch->id,
+            'name' => 'Grand Ballroom',
+            'capacity' => 250,
+            'hourly_rate_cents' => 45000,
+        ]);
+
+        EventSpace::create([
+            'branch_id' => $branch->id,
+            'name' => 'Executive Boardroom',
+            'capacity' => 20,
+            'hourly_rate_cents' => 15000,
+        ]);
+
+        $cateringService = EventService::create([
+            'branch_id' => $branch->id,
+            'name' => 'Buffet Lunch',
+            'category' => EventServiceCategory::Catering,
+            'unit_price_cents' => 3500,
+            'unit' => 'per_person',
+        ]);
+
+        $avService = EventService::create([
+            'branch_id' => $branch->id,
+            'name' => 'Projector & Screen',
+            'category' => EventServiceCategory::Equipment,
+            'unit_price_cents' => 15000,
+            'unit' => 'flat',
+        ]);
+
+        $createBooking = app(CreateEventBookingAction::class);
+        $addItem = app(AddEventBookingItemAction::class);
+
+        $confirmedBooking = $createBooking->handle(
+            branch: $branch,
+            eventSpace: $ballroom,
+            title: 'Globex Annual Conference',
+            eventType: 'conference',
+            startAt: now()->addWeeks(2)->setTime(9, 0),
+            endAt: now()->addWeeks(2)->setTime(17, 0),
+            corporateAccount: $corporateAccount,
+            attendeeCount: 180,
+            notes: 'Full-day conference with catered lunch and AV setup.',
+            createdBy: $staff['branchManager'],
+        );
+        $addItem->handle($confirmedBooking, $cateringService, 180);
+        $addItem->handle($confirmedBooking, $avService, 2);
+        app(ConfirmEventBookingAction::class)->handle($confirmedBooking);
+
+        $createBooking->handle(
+            branch: $branch,
+            eventSpace: $ballroom,
+            title: 'Private Wedding Reception',
+            eventType: 'wedding',
+            startAt: now()->addMonths(1)->setTime(18, 0),
+            endAt: now()->addMonths(1)->setTime(23, 0),
+            guest: $guests->random(),
+            corporateAccount: $travelAgentAccount,
+            attendeeCount: 120,
+            createdBy: $staff['branchManager'],
+        );
     }
 
     private function assignToBranch(User $user, Branch $branch, string $roleName): void

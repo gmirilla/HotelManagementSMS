@@ -24,21 +24,21 @@ class RolePermissionSeeder extends Seeder
     private const array ROLE_PERMISSIONS = [
         'Super Administrator' => ['*'],
         'Hotel Owner' => [
-            'reports.view', 'accounting.view', 'branches.manage', 'users.view',
+            'reports.view', 'accounting.view', 'branches.manage', 'users.view', 'crm.view', 'events.view',
         ],
         'General Manager' => [
             'reservations.manage', 'rooms.manage', 'guests.manage', 'housekeeping.manage',
             'maintenance.manage', 'restaurant.manage', 'inventory.manage', 'procurement.manage', 'accounting.view',
-            'hr.manage', 'reports.view', 'users.manage', 'folios.manage', 'folios.void',
+            'hr.manage', 'reports.view', 'users.manage', 'folios.manage', 'folios.void', 'crm.manage', 'events.manage',
         ],
         'Branch Manager' => [
             'reservations.manage', 'rooms.manage', 'guests.manage', 'housekeeping.manage',
             'maintenance.manage', 'restaurant.manage', 'inventory.manage', 'procurement.manage', 'reports.view',
-            'folios.manage', 'folios.void',
+            'folios.manage', 'folios.void', 'crm.manage', 'events.manage',
         ],
         'Receptionist' => [
             'reservations.view', 'reservations.create', 'reservations.update',
-            'front_desk.check_in', 'front_desk.check_out', 'guests.manage', 'folios.manage',
+            'front_desk.check_in', 'front_desk.check_out', 'guests.manage', 'folios.manage', 'crm.manage', 'events.view',
         ],
         'Reservation Officer' => [
             'reservations.manage', 'guests.view', 'guests.create',
@@ -74,7 +74,7 @@ class RolePermissionSeeder extends Seeder
             'hr.manage',
         ],
         'Auditor' => [
-            'reports.view', 'audit.view', 'accounting.view',
+            'reports.view', 'audit.view', 'accounting.view', 'crm.view', 'events.view',
         ],
         'Guest' => [
             'own_profile.manage', 'own_reservations.manage', 'own_invoices.view',

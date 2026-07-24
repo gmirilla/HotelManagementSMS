@@ -8,6 +8,13 @@ use App\Livewire\Accounting\ChartOfAccounts;
 use App\Livewire\Accounting\FinancialReports;
 use App\Livewire\Accounting\JournalEntryManager;
 use App\Livewire\Accounting\TaxRuleManager;
+use App\Livewire\CRM\CorporateAccountManager;
+use App\Livewire\CRM\CouponManager;
+use App\Livewire\CRM\FeedbackManager;
+use App\Livewire\CRM\LoyaltyManager;
+use App\Livewire\CRM\MarketingCampaignManager;
+use App\Livewire\Events\EventBookingManager;
+use App\Livewire\Events\EventSpaceManager;
 use App\Livewire\FrontDesk\Dashboard as FrontDeskDashboard;
 use App\Livewire\FrontDesk\FolioShow;
 use App\Livewire\Guests\GuestManager;
@@ -72,4 +79,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('hr/performance-reviews', PerformanceReviewManager::class)->name('hr.performance-reviews');
     Route::get('hr/disciplinary-records', DisciplinaryRecordManager::class)->name('hr.disciplinary-records');
     Route::get('hr/recruitment', RecruitmentBoard::class)->name('hr.recruitment');
+
+    Route::get('crm/corporate-accounts', CorporateAccountManager::class)->name('crm.corporate-accounts');
+    Route::get('crm/feedback', FeedbackManager::class)->name('crm.feedback');
+    Route::get('crm/loyalty', LoyaltyManager::class)->name('crm.loyalty');
+    Route::get('crm/coupons', CouponManager::class)->name('crm.coupons');
+    Route::get('crm/campaigns', MarketingCampaignManager::class)->name('crm.campaigns');
+
+    Route::get('events/spaces', EventSpaceManager::class)->name('events.spaces');
+    Route::get('events/bookings', EventBookingManager::class)->name('events.bookings');
 });

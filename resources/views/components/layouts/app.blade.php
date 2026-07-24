@@ -80,6 +80,23 @@
                                     <a href="{{ route('hr.recruitment') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Recruitment</a>
                                 </div>
                             </div>
+
+                            <div x-data="{ open: false }" class="relative">
+                                <button @click="open = ! open" @click.outside="open = false" class="flex items-center gap-1 hover:text-indigo-600">
+                                    CRM &amp; Events
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div x-show="open" x-cloak class="absolute left-0 z-10 mt-2 w-52 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
+                                    <a href="{{ route('crm.corporate-accounts') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Corporate Accounts</a>
+                                    <a href="{{ route('crm.feedback') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Guest Feedback</a>
+                                    <a href="{{ route('crm.loyalty') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Loyalty Program</a>
+                                    <a href="{{ route('crm.coupons') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Coupons</a>
+                                    <a href="{{ route('crm.campaigns') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Marketing Campaigns</a>
+                                    <div class="my-1 border-t border-slate-100"></div>
+                                    <a href="{{ route('events.spaces') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Event Spaces</a>
+                                    <a href="{{ route('events.bookings') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Event Bookings</a>
+                                </div>
+                            </div>
                         </div>
 
                         @if (auth()->user()->currentBranch)

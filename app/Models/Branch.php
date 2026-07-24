@@ -227,4 +227,52 @@ class Branch extends Model
     {
         return $this->hasMany(JobOpening::class);
     }
+
+    /**
+     * @return HasMany<GuestFeedback, $this>
+     */
+    public function guestFeedback(): HasMany
+    {
+        return $this->hasMany(GuestFeedback::class);
+    }
+
+    /**
+     * @return HasMany<Coupon, $this>
+     */
+    public function coupons(): HasMany
+    {
+        return $this->hasMany(Coupon::class);
+    }
+
+    /**
+     * @return HasMany<MarketingCampaign, $this>
+     */
+    public function marketingCampaigns(): HasMany
+    {
+        return $this->hasMany(MarketingCampaign::class);
+    }
+
+    /**
+     * @return HasMany<EventSpace, $this>
+     */
+    public function eventSpaces(): HasMany
+    {
+        return $this->hasMany(EventSpace::class);
+    }
+
+    /**
+     * @return HasMany<EventService, $this>
+     */
+    public function eventServices(): HasMany
+    {
+        return $this->hasMany(EventService::class);
+    }
+
+    /**
+     * @return HasMany<EventBooking, $this>
+     */
+    public function eventBookings(): HasMany
+    {
+        return $this->hasMany(EventBooking::class);
+    }
 }

@@ -142,6 +142,44 @@
         </a>
     </div>
 
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">CRM &amp; Events</h2>
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <a href="{{ route('crm.corporate-accounts') }}" class="rounded-lg border border-slate-200 bg-white p-5 hover:border-indigo-300 hover:shadow-sm">
+            <h2 class="font-medium text-slate-800">Corporate Accounts</h2>
+            <p class="mt-1 text-sm text-slate-500">Corporate clients and travel agents with negotiated terms.</p>
+        </a>
+
+        <a href="{{ route('crm.feedback') }}" class="rounded-lg border border-slate-200 bg-white p-5 hover:border-indigo-300 hover:shadow-sm">
+            <h2 class="font-medium text-slate-800">Guest Feedback</h2>
+            <p class="mt-1 text-sm text-slate-500">Log, assign, and resolve compliments and complaints.</p>
+        </a>
+
+        <a href="{{ route('crm.loyalty') }}" class="rounded-lg border border-slate-200 bg-white p-5 hover:border-indigo-300 hover:shadow-sm">
+            <h2 class="font-medium text-slate-800">Loyalty Program</h2>
+            <p class="mt-1 text-sm text-slate-500">Points balances, tiers, and redemptions.</p>
+        </a>
+
+        <a href="{{ route('crm.coupons') }}" class="rounded-lg border border-slate-200 bg-white p-5 hover:border-indigo-300 hover:shadow-sm">
+            <h2 class="font-medium text-slate-800">Coupons</h2>
+            <p class="mt-1 text-sm text-slate-500">Discount codes and promotions with usage limits.</p>
+        </a>
+
+        <a href="{{ route('crm.campaigns') }}" class="rounded-lg border border-slate-200 bg-white p-5 hover:border-indigo-300 hover:shadow-sm">
+            <h2 class="font-medium text-slate-800">Marketing Campaigns</h2>
+            <p class="mt-1 text-sm text-slate-500">Segment-targeted email/SMS campaigns.</p>
+        </a>
+
+        <a href="{{ route('events.spaces') }}" class="rounded-lg border border-slate-200 bg-white p-5 hover:border-indigo-300 hover:shadow-sm">
+            <h2 class="font-medium text-slate-800">Event Spaces</h2>
+            <p class="mt-1 text-sm text-slate-500">Conference halls, meeting rooms, and catering services.</p>
+        </a>
+
+        <a href="{{ route('events.bookings') }}" class="rounded-lg border border-slate-200 bg-white p-5 hover:border-indigo-300 hover:shadow-sm">
+            <h2 class="font-medium text-slate-800">Event Bookings</h2>
+            <p class="mt-1 text-sm text-slate-500">Bookings with a consolidated venue + services bill.</p>
+        </a>
+    </div>
+
     <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Account</h2>
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <a href="{{ route('mfa.setup') }}" class="rounded-lg border border-slate-200 bg-white p-5 hover:border-indigo-300 hover:shadow-sm">

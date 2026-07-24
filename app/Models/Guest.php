@@ -92,6 +92,22 @@ class Guest extends Model
         return $this->hasOne(Folio::class)->where('status', 'open');
     }
 
+    /**
+     * @return HasOne<LoyaltyAccount, $this>
+     */
+    public function loyaltyAccount(): HasOne
+    {
+        return $this->hasOne(LoyaltyAccount::class);
+    }
+
+    /**
+     * @return HasMany<GuestFeedback, $this>
+     */
+    public function feedback(): HasMany
+    {
+        return $this->hasMany(GuestFeedback::class);
+    }
+
     public function fullName(): string
     {
         return trim("{$this->first_name} {$this->last_name}");
