@@ -3,7 +3,7 @@
         <h1 class="mb-6 text-xl font-semibold text-slate-900">Two-factor authentication</h1>
 
         @if ($enabled)
-            <div class="rounded-lg border border-slate-200 bg-white p-6">
+            <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6">
                 <p class="mb-4 text-sm text-slate-700">
                     Two-factor authentication is <span class="font-medium text-emerald-700">enabled</span> on your account.
                 </p>
@@ -16,7 +16,7 @@
                 </form>
             </div>
         @else
-            <div class="rounded-lg border border-slate-200 bg-white p-6">
+            <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6">
                 <p class="mb-4 text-sm text-slate-700">
                     Scan this into your authenticator app (Google Authenticator, 1Password, Authy, etc.), or enter the key manually:
                 </p>

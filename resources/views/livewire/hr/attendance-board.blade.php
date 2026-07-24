@@ -10,7 +10,7 @@
         <x-text-input type="date" wire:model.live="workDate" class="mt-0 w-48" />
     </div>
 
-    <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
         <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                 <tr>
@@ -39,9 +39,9 @@
                         <td class="px-4 py-2 text-right text-xs">
                             @can('hr.manage')
                                 @if (! $row['record']?->clock_in_at)
-                                    <button wire:click="clockIn({{ $row['employee']->id }})" class="font-medium text-indigo-600 hover:text-indigo-500">Clock in</button>
+                                    <button wire:click="clockIn({{ $row['employee']->id }})" class="font-medium text-brand-600 hover:text-brand-500">Clock in</button>
                                 @elseif (! $row['record']?->clock_out_at)
-                                    <button wire:click="clockOut({{ $row['employee']->id }})" class="font-medium text-indigo-600 hover:text-indigo-500">Clock out</button>
+                                    <button wire:click="clockOut({{ $row['employee']->id }})" class="font-medium text-brand-600 hover:text-brand-500">Clock out</button>
                                 @endif
                                 <button wire:click="markStatus({{ $row['employee']->id }}, 'absent')" class="ml-3 font-medium text-red-600 hover:text-red-500">Mark absent</button>
                                 <button wire:click="markStatus({{ $row['employee']->id }}, 'on_leave')" class="ml-3 font-medium text-amber-600 hover:text-amber-500">Mark on leave</button>

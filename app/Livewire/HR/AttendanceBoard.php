@@ -55,25 +55,28 @@ class AttendanceBoard extends Component
 
     public function clockIn(int $employeeId, ClockInAction $clockIn): void
     {
-        abort_unless(auth()->user()->hasPermissionTo('hr.manage'), 403);
+        $employee = Employee::findOrFail($employeeId);
+        abort_unless(auth()->user()->canAccessBranch($employee->branch_id) && auth()->user()->hasPermissionTo('hr.manage'), 403);
 
-        $clockIn->handle(Employee::findOrFail($employeeId));
+        $clockIn->handle($employee);
         unset($this->rows);
     }
 
     public function clockOut(int $employeeId, ClockOutAction $clockOut): void
     {
-        abort_unless(auth()->user()->hasPermissionTo('hr.manage'), 403);
+        $employee = Employee::findOrFail($employeeId);
+        abort_unless(auth()->user()->canAccessBranch($employee->branch_id) && auth()->user()->hasPermissionTo('hr.manage'), 403);
 
-        $clockOut->handle(Employee::findOrFail($employeeId));
+        $clockOut->handle($employee);
         unset($this->rows);
     }
 
     public function markStatus(int $employeeId, string $status, RecordManualAttendanceAction $recordAttendance): void
     {
-        abort_unless(auth()->user()->hasPermissionTo('hr.manage'), 403);
+        $employee = Employee::findOrFail($employeeId);
+        abort_unless(auth()->user()->canAccessBranch($employee->branch_id) && auth()->user()->hasPermissionTo('hr.manage'), 403);
 
-        $recordAttendance->handle(Employee::findOrFail($employeeId), Carbon::parse($this->workDate), AttendanceStatus::from($status));
+        $recordAttendance->handle($employee, Carbon::parse($this->workDate), AttendanceStatus::from($status));
         unset($this->rows);
     }
 

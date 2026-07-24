@@ -11,14 +11,14 @@
             <x-text-input type="date" wire:model.live="shiftDate" class="mt-0" />
 
             @can('accounting.manage')
-                <button wire:click="create" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                <button wire:click="create" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                     New entry
                 </button>
             @endcan
         </div>
     </div>
 
-    <div class="mb-6 rounded-lg border border-slate-200 bg-white p-5">
+    <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
         <p class="text-xs uppercase text-slate-400">Running balance for {{ \Illuminate\Support\Carbon::parse($shiftDate)->format('M j, Y') }}</p>
         <p class="text-2xl font-semibold {{ $this->runningBalanceCents >= 0 ? 'text-emerald-600' : 'text-red-600' }}">
             ${{ number_format($this->runningBalanceCents / 100, 2) }}
@@ -26,7 +26,7 @@
     </div>
 
     @if ($showForm)
-        <form wire:submit="save" class="mb-6 space-y-3 rounded-lg border border-slate-200 bg-white p-6">
+        <form wire:submit="save" class="mb-6 space-y-3 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                     <x-input-label value="Type" />
@@ -52,7 +52,7 @@
         </form>
     @endif
 
-    <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
         <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                 <tr>

@@ -85,6 +85,11 @@ class PerformanceReviewManager extends Component
             'comments' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        // The employee picker only lists this branch's staff, but the
+        // property itself is client-mutable — re-verify server-side.
+        $employee = Employee::findOrFail($this->employeeId);
+        abort_unless(auth()->user()->canAccessBranch($employee->branch_id), 403);
+
         PerformanceReview::create([
             'employee_id' => $this->employeeId,
             'reviewer_user_id' => auth()->id(),

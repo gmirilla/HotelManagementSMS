@@ -9,14 +9,14 @@
 
         <div class="flex items-center gap-3">
             @if ($this->accessibleBranches->count() > 1)
-                <select wire:model.live="branchId" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <select wire:model.live="branchId" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
                     @foreach ($this->accessibleBranches as $branch)
                         <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                     @endforeach
                 </select>
             @endif
 
-            <select wire:model.live="statusFilter" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <select wire:model.live="statusFilter" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
                 <option value="">All statuses</option>
                 @foreach ($statuses as $status)
                     <option value="{{ $status->value }}">{{ $status->label() }}</option>
@@ -24,7 +24,7 @@
             </select>
 
             @can('create', [App\Models\Room::class, $branchId])
-                <button wire:click="create" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                <button wire:click="create" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                     New room
                 </button>
             @endcan
@@ -32,7 +32,7 @@
     </div>
 
     @if ($showForm)
-        <div class="mb-6 rounded-lg border border-slate-200 bg-white p-6">
+        <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6">
             <h2 class="mb-4 font-medium text-slate-800">{{ $editingId ? 'Edit room' : 'New room' }}</h2>
 
             <form wire:submit="save" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -44,7 +44,7 @@
 
                 <div>
                     <x-input-label for="roomTypeId" value="Room type" />
-                    <select id="roomTypeId" wire:model="roomTypeId" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <select id="roomTypeId" wire:model="roomTypeId" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm">
                         <option value="">Select a room type&hellip;</option>
                         @foreach ($this->roomTypes as $roomType)
                             <option value="{{ $roomType->id }}">{{ $roomType->name }}</option>
@@ -79,7 +79,7 @@
                 $statusStyles = [
                     'vacant_clean' => 'border-emerald-200 bg-emerald-50 text-emerald-800',
                     'vacant_dirty' => 'border-amber-200 bg-amber-50 text-amber-800',
-                    'occupied' => 'border-indigo-200 bg-indigo-50 text-indigo-800',
+                    'occupied' => 'border-brand-200 bg-brand-50 text-brand-800',
                     'out_of_order' => 'border-red-200 bg-red-50 text-red-800',
                     'out_of_service' => 'border-slate-300 bg-slate-100 text-slate-700',
                 ];

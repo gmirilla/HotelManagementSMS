@@ -13,11 +13,11 @@
     </div>
 
     <div class="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div class="rounded-lg border border-slate-200 bg-white p-5">
+        <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
             <div class="mb-3 flex items-center justify-between">
                 <h2 class="font-medium text-slate-800">Charges</h2>
                 @can('update', $folio)
-                    <button wire:click="$toggle('showChargeForm')" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">+ Add</button>
+                    <button wire:click="$toggle('showChargeForm')" class="text-sm font-medium text-brand-600 hover:text-brand-500">+ Add</button>
                 @endcan
             </div>
 
@@ -48,11 +48,11 @@
             </div>
         </div>
 
-        <div class="rounded-lg border border-slate-200 bg-white p-5">
+        <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
             <div class="mb-3 flex items-center justify-between">
                 <h2 class="font-medium text-slate-800">Payments</h2>
                 @can('update', $folio)
-                    <button wire:click="$toggle('showPaymentForm')" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">+ Add</button>
+                    <button wire:click="$toggle('showPaymentForm')" class="text-sm font-medium text-brand-600 hover:text-brand-500">+ Add</button>
                 @endcan
             </div>
 

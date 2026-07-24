@@ -8,7 +8,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('password.update') }}" class="space-y-5 rounded-lg border border-slate-200 bg-white p-6">
+        <form method="POST" action="{{ route('password.update') }}" class="space-y-5 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6">
             @csrf
             @method('PUT')
 

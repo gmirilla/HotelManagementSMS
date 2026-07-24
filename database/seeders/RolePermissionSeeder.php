@@ -24,7 +24,7 @@ class RolePermissionSeeder extends Seeder
     private const array ROLE_PERMISSIONS = [
         'Super Administrator' => ['*'],
         'Hotel Owner' => [
-            'reports.view', 'accounting.view', 'branches.manage', 'users.view', 'crm.view', 'events.view',
+            'reports.view', 'accounting.view', 'branches.manage', 'users.view', 'crm.view', 'events.view', 'settings.manage',
         ],
         'General Manager' => [
             'reservations.manage', 'rooms.manage', 'guests.manage', 'housekeeping.manage',

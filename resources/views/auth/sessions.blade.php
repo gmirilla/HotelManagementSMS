@@ -12,7 +12,7 @@
             </form>
         </div>
 
-        <div class="divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
+        <div class="divide-y divide-slate-200 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
             @foreach ($sessions as $session)
                 <div class="flex items-center justify-between p-4">
                     <div>

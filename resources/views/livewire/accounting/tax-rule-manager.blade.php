@@ -8,14 +8,14 @@
         </div>
 
         @can('accounting.manage')
-            <button wire:click="create" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            <button wire:click="create" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                 New tax rule
             </button>
         @endcan
     </div>
 
     @if ($showForm)
-        <form wire:submit="save" class="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-3">
+        <form wire:submit="save" class="mb-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6 sm:grid-cols-3">
             <div>
                 <x-input-label value="Name" />
                 <x-text-input type="text" wire:model="name" />
@@ -41,7 +41,7 @@
         </form>
     @endif
 
-    <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
         <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                 <tr><th class="px-4 py-3">Name</th><th class="px-4 py-3">Rate</th><th class="px-4 py-3">Applies to</th><th class="px-4 py-3"></th></tr>

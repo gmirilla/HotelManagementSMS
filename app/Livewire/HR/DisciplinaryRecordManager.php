@@ -78,6 +78,11 @@ class DisciplinaryRecordManager extends Component
             'actionTaken' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        // The employee picker only lists this branch's staff, but the
+        // property itself is client-mutable — re-verify server-side.
+        $employee = Employee::findOrFail($this->employeeId);
+        abort_unless(auth()->user()->canAccessBranch($employee->branch_id), 403);
+
         DisciplinaryRecord::create([
             'employee_id' => $this->employeeId,
             'reported_by_user_id' => auth()->id(),

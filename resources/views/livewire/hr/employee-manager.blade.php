@@ -11,7 +11,7 @@
             <x-text-input type="search" wire:model.live.debounce.300ms="search" placeholder="Search employees…" class="mt-0 w-56" />
 
             @can('hr.manage')
-                <button wire:click="create" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                <button wire:click="create" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                     New employee
                 </button>
             @endcan
@@ -19,7 +19,7 @@
     </div>
 
     @if ($showForm)
-        <form wire:submit="save" class="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-3">
+        <form wire:submit="save" class="mb-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6 sm:grid-cols-3">
             <div>
                 <x-input-label value="First name" />
                 <x-text-input type="text" wire:model="firstName" />
@@ -75,7 +75,7 @@
         </form>
     @endif
 
-    <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
         <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                 <tr>
@@ -107,7 +107,7 @@
                         </td>
                         <td class="px-4 py-2 text-right">
                             @can('hr.manage')
-                                <button wire:click="edit({{ $employee->id }})" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">Edit</button>
+                                <button wire:click="edit({{ $employee->id }})" class="text-xs font-medium text-brand-600 hover:text-brand-500">Edit</button>
                                 @if ($employee->status->value !== 'terminated')
                                     <button wire:click="terminate({{ $employee->id }})" wire:confirm="Terminate this employee?" class="ml-3 text-xs font-medium text-red-600 hover:text-red-500">Terminate</button>
                                 @endif

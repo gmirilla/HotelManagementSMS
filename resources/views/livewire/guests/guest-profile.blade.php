@@ -4,18 +4,18 @@
             <h1 class="text-xl font-semibold text-slate-900">{{ $guest->fullName() }}</h1>
             <p class="text-sm text-slate-500">{{ $guest->email }} &middot; {{ $guest->phone }}</p>
         </div>
-        <a href="{{ route('guests.index') }}" class="text-sm text-indigo-600 hover:text-indigo-500">&larr; All guests</a>
+        <a href="{{ route('guests.index') }}" class="text-sm text-brand-600 hover:text-brand-500">&larr; All guests</a>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div class="space-y-6 lg:col-span-2">
-            <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-3 font-medium text-slate-800">Recent reservations</h2>
                 <div class="divide-y divide-slate-100">
                     @forelse ($guest->reservations as $reservation)
                         <div class="flex items-center justify-between py-2 text-sm">
                             <div>
-                                <a href="{{ route('reservations.show', $reservation) }}" class="font-medium text-indigo-600 hover:text-indigo-500">
+                                <a href="{{ route('reservations.show', $reservation) }}" class="font-medium text-brand-600 hover:text-brand-500">
                                     {{ $reservation->confirmation_code }}
                                 </a>
                                 <span class="ml-2 text-slate-500">{{ $reservation->arrival_date->format('M j, Y') }} &ndash; {{ $reservation->departure_date->format('M j, Y') }}</span>
@@ -28,7 +28,7 @@
                 </div>
             </div>
 
-            <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-3 font-medium text-slate-800">Notes</h2>
 
                 <form wire:submit="addNote" class="mb-4 flex gap-2">
@@ -51,7 +51,7 @@
         </div>
 
         <div class="space-y-6">
-            <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-3 font-medium text-slate-800">Documents</h2>
                 @forelse ($guest->documents as $document)
                     <div class="mb-2 text-sm">
@@ -63,7 +63,7 @@
                 @endforelse
             </div>
 
-            <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-3 font-medium text-slate-800">Emergency / family contacts</h2>
                 @forelse ($guest->contacts as $contact)
                     <div class="mb-2 text-sm">

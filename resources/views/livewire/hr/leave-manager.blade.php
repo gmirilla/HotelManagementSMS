@@ -13,7 +13,7 @@
                     New leave type
                 </button>
             @endif
-            <button wire:click="openRequestForm" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            <button wire:click="openRequestForm" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                 Request leave
             </button>
         </div>
@@ -34,7 +34,7 @@
     </div>
 
     @if ($showForm)
-        <form wire:submit="submitRequest" class="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-2">
+        <form wire:submit="submitRequest" class="mb-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6 sm:grid-cols-2">
             @if ($this->isHr)
                 <div>
                     <x-input-label value="Employee" />
@@ -79,7 +79,7 @@
     @endif
 
     @if ($showTypeForm)
-        <form wire:submit="saveType" class="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-3">
+        <form wire:submit="saveType" class="mb-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6 sm:grid-cols-3">
             <div>
                 <x-input-label value="Name" />
                 <x-text-input type="text" wire:model="typeName" />
@@ -106,7 +106,7 @@
     @if ($tab === 'requests')
         <div class="space-y-3">
             @forelse ($this->leaveRequests as $request)
-                <div wire:key="leave-{{ $request->id }}" class="rounded-lg border border-slate-200 bg-white p-4">
+                <div wire:key="leave-{{ $request->id }}" class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-4">
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="font-medium text-slate-800">{{ $request->employee->fullName() }} — {{ $request->leaveType->name }}</p>
@@ -154,7 +154,7 @@
     @endif
 
     @if ($tab === 'balances')
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                     <tr>
@@ -181,7 +181,7 @@
     @endif
 
     @if ($tab === 'types' && $this->isHr)
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                     <tr><th class="px-4 py-3">Name</th><th class="px-4 py-3">Days/year</th><th class="px-4 py-3">Paid</th></tr>

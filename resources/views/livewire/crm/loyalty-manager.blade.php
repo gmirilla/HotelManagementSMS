@@ -1,12 +1,12 @@
 <div>
     <h1 class="mb-6 text-xl font-semibold text-slate-900">Loyalty Program</h1>
 
-    <div class="mb-6 rounded-lg border border-slate-200 bg-white p-4">
+    <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-4">
         <x-input-label value="Search guest" />
         <x-text-input type="text" wire:model.live.debounce.300ms="guestSearch" placeholder="Search by name…" />
 
         @if ($guestSearch !== '')
-            <div class="mt-1 max-h-40 overflow-y-auto rounded-md border border-slate-200 bg-white">
+            <div class="mt-1 max-h-40 overflow-y-auto rounded-md border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
                 @forelse ($this->guestResults as $guest)
                     <button type="button" wire:click="selectGuest({{ $guest->id }})" class="block w-full px-3 py-2 text-left text-sm hover:bg-slate-50">
                         {{ $guest->fullName() }}
@@ -19,7 +19,7 @@
     </div>
 
     @if ($this->selectedGuest)
-        <div class="mb-6 rounded-lg border border-slate-200 bg-white p-6">
+        <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <p class="text-lg font-medium text-slate-800">{{ $this->selectedGuest->fullName() }}</p>
@@ -32,15 +32,15 @@
 
                 @if ($this->loyaltyAccount)
                     <div class="text-right">
-                        <p class="text-2xl font-semibold text-indigo-600">{{ number_format($pointsBalance) }} pts</p>
-                        <span class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">{{ ucfirst($tier->value) }}</span>
+                        <p class="text-2xl font-semibold text-brand-600">{{ number_format($pointsBalance) }} pts</p>
+                        <span class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-700">{{ ucfirst($tier->value) }}</span>
                     </div>
                 @endif
             </div>
 
             @can('crm.manage')
                 <div class="mt-4 flex gap-3 border-t border-slate-100 pt-4">
-                    <button wire:click="startEarn" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Earn points</button>
+                    <button wire:click="startEarn" class="text-sm font-medium text-brand-600 hover:text-brand-500">Earn points</button>
                     @if ($this->loyaltyAccount)
                         <button wire:click="startRedeem" class="text-sm font-medium text-amber-600 hover:text-amber-500">Redeem points</button>
                     @endif
@@ -67,7 +67,7 @@
         </div>
 
         @if ($this->loyaltyAccount)
-            <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
                 <table class="min-w-full divide-y divide-slate-200 text-sm">
                     <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                         <tr><th class="px-4 py-3">Date</th><th class="px-4 py-3">Type</th><th class="px-4 py-3">Points</th><th class="px-4 py-3">Description</th></tr>

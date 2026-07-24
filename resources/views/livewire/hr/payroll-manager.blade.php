@@ -9,7 +9,7 @@
     </div>
 
     @can('hr.manage')
-        <form wire:submit="process" class="mb-6 flex flex-wrap items-end gap-4 rounded-lg border border-slate-200 bg-white p-6">
+        <form wire:submit="process" class="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6">
             <div>
                 <x-input-label value="Period start" />
                 <x-text-input type="date" wire:model="periodStart" />
@@ -25,7 +25,7 @@
     @endcan
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                     <tr><th class="px-4 py-3">Period</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Payslips</th><th class="px-4 py-3"></th></tr>
@@ -39,7 +39,7 @@
                             </td>
                             <td class="px-4 py-2 text-slate-600">{{ $run->payslips_count }}</td>
                             <td class="px-4 py-2 text-right">
-                                <button wire:click="view({{ $run->id }})" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">View</button>
+                                <button wire:click="view({{ $run->id }})" class="text-xs font-medium text-brand-600 hover:text-brand-500">View</button>
                             </td>
                         </tr>
                     @empty
@@ -51,7 +51,7 @@
 
         <div>
             @if ($this->viewingRun)
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
                     <div class="border-b border-slate-100 px-4 py-3">
                         <p class="font-medium text-slate-800">
                             Payslips — {{ $this->viewingRun->period_start->format('M j') }} – {{ $this->viewingRun->period_end->format('M j, Y') }}

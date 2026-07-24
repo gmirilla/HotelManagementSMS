@@ -135,7 +135,14 @@ class EventBookingManager extends Component
             'itemQuantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        $addItem->handle($this->selectedBooking, EventService::findOrFail($this->selectedServiceId), (int) $this->itemQuantity);
+        // The service picker only lists this branch's services, but the
+        // property itself is client-mutable — re-verify server-side that a
+        // different branch's service (with different pricing) can't be
+        // attached to this booking.
+        $service = EventService::findOrFail($this->selectedServiceId);
+        abort_unless($service->branch_id === $this->selectedBooking->branch_id, 403);
+
+        $addItem->handle($this->selectedBooking, $service, (int) $this->itemQuantity);
 
         $this->selectedServiceId = '';
         $this->itemQuantity = '1';

@@ -8,14 +8,14 @@
         </div>
 
         @can('create', App\Models\JournalEntry::class)
-            <button wire:click="create" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            <button wire:click="create" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                 New journal entry
             </button>
         @endcan
     </div>
 
     @if ($showForm)
-        <div class="mb-6 rounded-lg border border-slate-200 bg-white p-6">
+        <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6">
             <form wire:submit="save" class="space-y-4">
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
@@ -48,7 +48,7 @@
                             <button type="button" wire:click="removeLine({{ $index }})" class="text-sm text-red-600">&times;</button>
                         </div>
                     @endforeach
-                    <button type="button" wire:click="addLine" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">+ Add line</button>
+                    <button type="button" wire:click="addLine" class="text-sm font-medium text-brand-600 hover:text-brand-500">+ Add line</button>
                     <x-input-error :messages="$errors->get('lines')" />
                 </div>
 
@@ -62,7 +62,7 @@
 
     <div class="space-y-3">
         @forelse ($this->journalEntries as $entry)
-            <div wire:key="je-{{ $entry->id }}" class="rounded-lg border border-slate-200 bg-white p-4">
+            <div wire:key="je-{{ $entry->id }}" class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-4">
                 <div class="mb-2 flex items-center justify-between">
                     <p class="font-medium text-slate-800">{{ $entry->entry_date->format('M j, Y') }} &mdash; {{ $entry->memo }}</p>
                     <span class="text-xs text-slate-400">{{ $entry->createdBy?->name ?? 'System' }}</span>

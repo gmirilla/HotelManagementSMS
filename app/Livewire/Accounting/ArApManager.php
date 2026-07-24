@@ -55,11 +55,11 @@ class ArApManager extends Component
 
     public function recordArPayment(RecordArPaymentAction $recordPayment): void
     {
-        abort_unless(auth()->user()->hasPermissionTo('accounting.manage'), 403);
+        $entry = ArEntry::findOrFail($this->payingArId);
+        abort_unless(auth()->user()->canAccessBranch($entry->branch_id) && auth()->user()->hasPermissionTo('accounting.manage'), 403);
 
         $this->validate(['paymentAmount' => ['required', 'numeric', 'min:0.01']]);
 
-        $entry = ArEntry::findOrFail($this->payingArId);
         $recordPayment->handle($entry, (int) round(((float) $this->paymentAmount) * 100));
 
         $this->payingArId = null;
@@ -74,11 +74,11 @@ class ArApManager extends Component
 
     public function recordApPayment(RecordApPaymentAction $recordPayment): void
     {
-        abort_unless(auth()->user()->hasPermissionTo('accounting.manage'), 403);
+        $entry = ApEntry::findOrFail($this->payingApId);
+        abort_unless(auth()->user()->canAccessBranch($entry->branch_id) && auth()->user()->hasPermissionTo('accounting.manage'), 403);
 
         $this->validate(['paymentAmount' => ['required', 'numeric', 'min:0.01']]);
 
-        $entry = ApEntry::findOrFail($this->payingApId);
         $recordPayment->handle($entry, (int) round(((float) $this->paymentAmount) * 100));
 
         $this->payingApId = null;

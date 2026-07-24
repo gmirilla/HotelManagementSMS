@@ -113,6 +113,13 @@ class LeaveManager extends Component
         }
 
         $employee = Employee::findOrFail($this->employeeId);
+
+        // The employee picker only lists this branch's staff, but the
+        // property itself is client-mutable — re-verify server-side that an
+        // HR user submitting on someone's behalf isn't reaching across
+        // branches they don't have access to.
+        abort_unless(auth()->user()->canAccessBranch($employee->branch_id), 403);
+
         $leaveType = LeaveType::findOrFail($this->leaveTypeId);
 
         $submitLeaveRequest->handle($employee, $leaveType, Carbon::parse($this->startDate), Carbon::parse($this->endDate), $this->reason ?: null);
@@ -123,15 +130,16 @@ class LeaveManager extends Component
 
     public function approve(int $leaveRequestId, ApproveLeaveRequestAction $approveLeaveRequest): void
     {
-        $this->authorize('review', LeaveRequest::class);
+        $leaveRequest = LeaveRequest::findOrFail($leaveRequestId);
+        $this->authorize('review', $leaveRequest);
 
-        $approveLeaveRequest->handle(LeaveRequest::findOrFail($leaveRequestId), auth()->user());
+        $approveLeaveRequest->handle($leaveRequest, auth()->user());
         unset($this->leaveRequests);
     }
 
     public function startReject(int $leaveRequestId): void
     {
-        $this->authorize('review', LeaveRequest::class);
+        $this->authorize('review', LeaveRequest::findOrFail($leaveRequestId));
 
         $this->rejectingRequestId = $leaveRequestId;
         $this->rejectionReason = '';
@@ -139,11 +147,12 @@ class LeaveManager extends Component
 
     public function reject(RejectLeaveRequestAction $rejectLeaveRequest): void
     {
-        $this->authorize('review', LeaveRequest::class);
+        $leaveRequest = LeaveRequest::findOrFail($this->rejectingRequestId);
+        $this->authorize('review', $leaveRequest);
 
         $this->validate(['rejectionReason' => ['required', 'string', 'max:500']]);
 
-        $rejectLeaveRequest->handle(LeaveRequest::findOrFail($this->rejectingRequestId), auth()->user(), $this->rejectionReason);
+        $rejectLeaveRequest->handle($leaveRequest, auth()->user(), $this->rejectionReason);
 
         $this->rejectingRequestId = null;
         unset($this->leaveRequests);

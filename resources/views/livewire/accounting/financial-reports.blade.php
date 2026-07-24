@@ -47,7 +47,7 @@
     @endif
 
     @if ($tab === 'trial_balance')
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                     <tr><th class="px-4 py-3">Account</th><th class="px-4 py-3 text-right">Debit</th><th class="px-4 py-3 text-right">Credit</th></tr>
@@ -74,7 +74,7 @@
 
     @if ($tab === 'profit_loss')
         @php $pnl = $this->profitAndLoss; @endphp
-        <div class="rounded-lg border border-slate-200 bg-white p-5">
+        <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
             <h2 class="mb-2 text-sm font-semibold uppercase text-slate-500">Revenue</h2>
             @foreach ($pnl['revenue'] as $row)
                 <div class="flex justify-between py-1 text-sm">
@@ -109,7 +109,7 @@
     @if ($tab === 'balance_sheet')
         @php $bs = $this->balanceSheet; @endphp
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-2 text-sm font-semibold uppercase text-slate-500">Assets</h2>
                 @foreach ($bs['assets'] as $row)
                     <div class="flex justify-between py-1 text-sm">
@@ -122,7 +122,7 @@
                 </div>
             </div>
 
-            <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-2 text-sm font-semibold uppercase text-slate-500">Liabilities</h2>
                 @foreach ($bs['liabilities'] as $row)
                     <div class="flex justify-between py-1 text-sm">

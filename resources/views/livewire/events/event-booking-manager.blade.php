@@ -8,14 +8,14 @@
         </div>
 
         @can('events.manage')
-            <button wire:click="create" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            <button wire:click="create" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                 New booking
             </button>
         @endcan
     </div>
 
     @if ($showForm)
-        <form wire:submit="save" class="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-3">
+        <form wire:submit="save" class="mb-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6 sm:grid-cols-3">
             <div>
                 <x-input-label value="Event space" />
                 <select wire:model="eventSpaceId" class="mt-1 block w-full rounded-md border-slate-300 text-sm shadow-sm">
@@ -62,14 +62,14 @@
     @endif
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white lg:col-span-1">
+        <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 lg:col-span-1">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                     <tr><th class="px-4 py-3">Booking</th><th class="px-4 py-3">Status</th></tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse ($this->bookings as $booking)
-                        <tr wire:key="booking-{{ $booking->id }}" wire:click="select({{ $booking->id }})" @class(['cursor-pointer hover:bg-slate-50', 'bg-indigo-50' => $selectedBookingId === $booking->id])>
+                        <tr wire:key="booking-{{ $booking->id }}" wire:click="select({{ $booking->id }})" @class(['cursor-pointer hover:bg-slate-50', 'bg-brand-50' => $selectedBookingId === $booking->id])>
                             <td class="px-4 py-2">
                                 <p class="font-medium text-slate-800">{{ $booking->title }}</p>
                                 <p class="text-xs text-slate-500">{{ $booking->eventSpace->name }} — {{ $booking->start_at->format('M j, g:ia') }}</p>
@@ -109,7 +109,7 @@
                 </div>
 
                 @can('events.manage')
-                    <form wire:submit="addItem" class="mb-4 flex items-end gap-3 rounded-lg border border-slate-200 bg-white p-4">
+                    <form wire:submit="addItem" class="mb-4 flex items-end gap-3 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-4">
                         <div class="flex-1">
                             <x-input-label value="Service" />
                             <select wire:model="selectedServiceId" class="mt-1 block w-full rounded-md border-slate-300 text-sm shadow-sm">
@@ -129,7 +129,7 @@
                 @endcan
 
                 @if ($bill)
-                    <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                    <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
                         <table class="min-w-full divide-y divide-slate-200 text-sm">
                             <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                                 <tr><th class="px-4 py-3">Line item</th><th class="px-4 py-3">Amount</th></tr>

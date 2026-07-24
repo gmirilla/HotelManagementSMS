@@ -7,7 +7,7 @@
         <span class="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">{{ ucfirst(str_replace('_', ' ', $reservation->status->value)) }}</span>
     </div>
 
-    <div class="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-slate-200 bg-white p-5 sm:grid-cols-4">
+    <div class="mb-6 grid grid-cols-2 gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5 sm:grid-cols-4">
         <div>
             <p class="text-xs uppercase text-slate-400">Arrival</p>
             <p class="font-medium text-slate-800">{{ $reservation->arrival_date->format('M j, Y') }}</p>
@@ -26,7 +26,7 @@
         </div>
     </div>
 
-    <div class="mb-6 rounded-lg border border-slate-200 bg-white p-5">
+    <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
         <h2 class="mb-3 font-medium text-slate-800">Room</h2>
         @foreach ($reservation->rooms as $reservationRoom)
             <div class="flex items-center justify-between text-sm">
@@ -37,10 +37,10 @@
     </div>
 
     @if ($reservation->folio)
-        <div class="mb-6 rounded-lg border border-slate-200 bg-white p-5">
+        <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
             <div class="mb-3 flex items-center justify-between">
                 <h2 class="font-medium text-slate-800">Folio</h2>
-                <a href="{{ route('folios.show', $reservation->folio) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                <a href="{{ route('folios.show', $reservation->folio) }}" class="text-sm font-medium text-brand-600 hover:text-brand-500">
                     View folio &rarr;
                 </a>
             </div>
@@ -49,7 +49,7 @@
     @endif
 
     @if ($reservation->special_requests)
-        <div class="mb-6 rounded-lg border border-slate-200 bg-white p-5">
+        <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
             <h2 class="mb-2 font-medium text-slate-800">Special requests</h2>
             <p class="text-sm text-slate-600">{{ $reservation->special_requests }}</p>
         </div>

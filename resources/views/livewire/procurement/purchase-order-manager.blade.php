@@ -8,14 +8,14 @@
         </div>
 
         @can('create', App\Models\PurchaseOrder::class)
-            <button wire:click="create" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            <button wire:click="create" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                 New purchase order
             </button>
         @endcan
     </div>
 
     @if ($showForm)
-        <div class="mb-6 rounded-lg border border-slate-200 bg-white p-6">
+        <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6">
             <form wire:submit="save" class="space-y-4">
                 <div>
                     <x-input-label for="supplierId" value="Supplier" />
@@ -43,7 +43,7 @@
                             <button type="button" wire:click="removeLine({{ $index }})" class="text-sm text-red-600">&times;</button>
                         </div>
                     @endforeach
-                    <button type="button" wire:click="addLine" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">+ Add line</button>
+                    <button type="button" wire:click="addLine" class="text-sm font-medium text-brand-600 hover:text-brand-500">+ Add line</button>
                 </div>
 
                 <div class="flex gap-3">
@@ -56,7 +56,7 @@
 
     <div class="space-y-3">
         @forelse ($this->purchaseOrders as $po)
-            <div wire:key="po-{{ $po->id }}" class="rounded-lg border border-slate-200 bg-white p-4">
+            <div wire:key="po-{{ $po->id }}" class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-4">
                 <div class="flex items-start justify-between">
                     <div>
                         <p class="font-medium text-slate-800">{{ $po->po_number }} &middot; {{ $po->supplier->name }}</p>
@@ -86,12 +86,12 @@
                                         </div>
                                     @endif
                                 @endforeach
-                                <button type="submit" class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500">
+                                <button type="submit" class="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-500">
                                     Record receipt
                                 </button>
                             </form>
                         @else
-                            <button wire:click="startReceiving({{ $po->id }})" class="mt-3 text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                            <button wire:click="startReceiving({{ $po->id }})" class="mt-3 text-sm font-medium text-brand-600 hover:text-brand-500">
                                 Receive goods
                             </button>
                         @endif

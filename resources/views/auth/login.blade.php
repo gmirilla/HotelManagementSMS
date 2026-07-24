@@ -24,11 +24,11 @@
 
         <div class="flex items-center justify-between">
             <label class="flex items-center gap-2 text-sm text-slate-600">
-                <input type="checkbox" name="remember" class="rounded border-slate-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                <input type="checkbox" name="remember" class="rounded border-slate-300 text-brand-600 shadow-sm focus:ring-brand-500">
                 Remember me
             </label>
 
-            <a href="{{ route('password.request') }}" class="text-sm text-indigo-600 hover:text-indigo-500">
+            <a href="{{ route('password.request') }}" class="text-sm text-brand-600 hover:text-brand-500">
                 Forgot your password?
             </a>
         </div>
@@ -38,6 +38,6 @@
 
     <p class="mt-6 text-center text-sm text-slate-600">
         Booking a stay?
-        <a href="{{ route('register') }}" class="font-medium text-indigo-600 hover:text-indigo-500">Create a guest account</a>
+        <a href="{{ route('register') }}" class="font-medium text-brand-600 hover:text-brand-500">Create a guest account</a>
     </p>
 </x-layouts.guest>

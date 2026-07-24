@@ -147,7 +147,12 @@ class BookingWizard extends Component
 
         $this->validate(['selectedGuestId' => ['required', 'integer', 'exists:guests,id']]);
 
+        // The room type picker only lists this branch's room types, but the
+        // property itself is client-mutable — re-verify server-side that a
+        // different branch's room type (with different rates) can't be
+        // booked against this reservation's branch.
         $roomType = RoomType::findOrFail($this->selectedRoomTypeId);
+        abort_unless($roomType->branch_id === $this->branchId, 403);
 
         $reservation = $createReservation->handle(
             branchId: $this->branchId,

@@ -20,7 +20,7 @@
                         <option value="{{ $type->value }}">{{ ucfirst(str_replace('_', ' ', $type->value)) }}</option>
                     @endforeach
                 </select>
-                <button type="submit" class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500">
+                <button type="submit" class="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-500">
                     Add task
                 </button>
             </form>
@@ -34,13 +34,13 @@
 
                 <div class="space-y-2">
                     @foreach ($this->tasksByStatus[$status] as $task)
-                        <div wire:key="task-{{ $task->id }}" class="rounded-md border border-slate-200 bg-white p-3 text-sm">
+                        <div wire:key="task-{{ $task->id }}" class="rounded-md border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-3 text-sm">
                             <p class="font-medium text-slate-800">Room {{ $task->room->room_number }}</p>
                             <p class="text-xs text-slate-500">{{ ucfirst(str_replace('_', ' ', $task->task_type->value)) }}</p>
                             <p class="text-xs text-slate-500">{{ $task->assignedTo?->name ?? 'Unassigned' }}</p>
 
                             @if ($status === 'pending' && ! $task->assigned_to_user_id)
-                                <button wire:click="assignToMe({{ $task->id }})" class="mt-2 text-xs font-medium text-indigo-600 hover:text-indigo-500">
+                                <button wire:click="assignToMe({{ $task->id }})" class="mt-2 text-xs font-medium text-brand-600 hover:text-brand-500">
                                     Assign to me
                                 </button>
                             @endif
@@ -50,7 +50,7 @@
                                     <div class="mt-2 space-y-1">
                                         @foreach ($checklistDraft as $item => $done)
                                             <label class="flex items-center gap-2 text-xs">
-                                                <input type="checkbox" wire:model="checklistDraft.{{ $item }}" class="rounded border-slate-300 text-indigo-600">
+                                                <input type="checkbox" wire:model="checklistDraft.{{ $item }}" class="rounded border-slate-300 text-brand-600">
                                                 {{ $item }}
                                             </label>
                                         @endforeach
@@ -59,7 +59,7 @@
                                         </button>
                                     </div>
                                 @else
-                                    <button wire:click="startCompleting({{ $task->id }})" class="mt-2 text-xs font-medium text-indigo-600 hover:text-indigo-500">
+                                    <button wire:click="startCompleting({{ $task->id }})" class="mt-2 text-xs font-medium text-brand-600 hover:text-brand-500">
                                         Complete checklist
                                     </button>
                                 @endif

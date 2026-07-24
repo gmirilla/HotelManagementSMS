@@ -6,14 +6,14 @@
         </div>
 
         @can('hr.manage')
-            <button wire:click="create" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            <button wire:click="create" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                 New record
             </button>
         @endcan
     </div>
 
     @if ($showForm)
-        <form wire:submit="save" class="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-2">
+        <form wire:submit="save" class="mb-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6 sm:grid-cols-2">
             <div>
                 <x-input-label value="Employee" />
                 <select wire:model="employeeId" class="mt-1 block w-full rounded-md border-slate-300 text-sm shadow-sm">
@@ -55,7 +55,7 @@
 
     <div class="space-y-3">
         @forelse ($this->records as $record)
-            <div wire:key="record-{{ $record->id }}" class="rounded-lg border border-slate-200 bg-white p-4">
+            <div wire:key="record-{{ $record->id }}" class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-4">
                 <div class="flex items-start justify-between">
                     <div>
                         <p class="font-medium text-slate-800">{{ $record->employee->fullName() }}</p>

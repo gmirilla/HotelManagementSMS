@@ -144,6 +144,13 @@ class HotelDemoSeeder extends Seeder
         ]);
         $owner->assignRole('Hotel Owner');
 
+        $generalManager = User::factory()->create([
+            'name' => 'Aurora General Manager',
+            'email' => 'gm@aurorahotels.test',
+            'tenant_id' => $tenant->id,
+        ]);
+        $generalManager->assignRole('General Manager');
+
         $corporateAccount = CorporateAccount::factory()->create([
             'tenant_id' => $tenant->id,
             'company_name' => 'Globex Travel Partners',

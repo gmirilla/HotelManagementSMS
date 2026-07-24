@@ -17,7 +17,7 @@
             @endif
 
             @can('create', App\Models\InventoryItem::class)
-                <button wire:click="create" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                <button wire:click="create" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                     New item
                 </button>
             @endcan
@@ -25,7 +25,7 @@
     </div>
 
     @if ($showForm)
-        <div class="mb-6 rounded-lg border border-slate-200 bg-white p-6">
+        <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6">
             <form wire:submit="save" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <x-input-label for="name" value="Name" />
@@ -53,7 +53,7 @@
         </div>
     @endif
 
-    <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
         <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                 <tr>
@@ -82,7 +82,7 @@
                         <td class="px-4 py-3 text-right">
                             @can('update', $item)
                                 <div class="flex justify-end gap-2 text-xs font-medium">
-                                    <button wire:click="startMovement({{ $item->id }}, 'receive')" class="text-indigo-600 hover:text-indigo-500">Receive</button>
+                                    <button wire:click="startMovement({{ $item->id }}, 'receive')" class="text-brand-600 hover:text-brand-500">Receive</button>
                                     <button wire:click="startMovement({{ $item->id }}, 'wastage')" class="text-red-600 hover:text-red-500">Wastage</button>
                                     <button wire:click="startMovement({{ $item->id }}, 'adjust')" class="text-slate-600 hover:text-slate-800">Adjust</button>
                                 </div>
@@ -94,7 +94,7 @@
                                     @if ($movementMode === 'receive')
                                         <input type="number" step="0.01" wire:model="movementUnitCost" placeholder="Unit cost" class="w-24 rounded-md border-slate-300 text-sm">
                                     @endif
-                                    <button type="submit" class="rounded-md bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-500">Go</button>
+                                    <button type="submit" class="rounded-md bg-brand-600 px-2 py-1 text-xs font-medium text-white hover:bg-brand-500">Go</button>
                                 </form>
                             @endif
                         </td>

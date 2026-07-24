@@ -20,7 +20,7 @@
     @if ($tab === 'receivables')
         <div class="space-y-3">
             @forelse ($this->receivables as $ar)
-                <div wire:key="ar-{{ $ar->id }}" class="rounded-lg border border-slate-200 bg-white p-4">
+                <div wire:key="ar-{{ $ar->id }}" class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-4">
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="font-medium text-slate-800">{{ $ar->corporateAccount->company_name }}</p>
@@ -46,7 +46,7 @@
                                 </form>
                                 <x-input-error :messages="$errors->get('paymentAmount')" />
                             @else
-                                <button wire:click="startArPayment({{ $ar->id }})" class="mt-3 text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                <button wire:click="startArPayment({{ $ar->id }})" class="mt-3 text-sm font-medium text-brand-600 hover:text-brand-500">
                                     Record payment
                                 </button>
                             @endif
@@ -62,7 +62,7 @@
     @if ($tab === 'payables')
         <div class="space-y-3">
             @forelse ($this->payables as $ap)
-                <div wire:key="ap-{{ $ap->id }}" class="rounded-lg border border-slate-200 bg-white p-4">
+                <div wire:key="ap-{{ $ap->id }}" class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-4">
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="font-medium text-slate-800">{{ $ap->supplier->name }}</p>
@@ -88,7 +88,7 @@
                                 </form>
                                 <x-input-error :messages="$errors->get('paymentAmount')" />
                             @else
-                                <button wire:click="startApPayment({{ $ap->id }})" class="mt-3 text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                <button wire:click="startApPayment({{ $ap->id }})" class="mt-3 text-sm font-medium text-brand-600 hover:text-brand-500">
                                     Record payment
                                 </button>
                             @endif

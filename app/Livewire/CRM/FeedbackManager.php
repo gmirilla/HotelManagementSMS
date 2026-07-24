@@ -93,15 +93,16 @@ class FeedbackManager extends Component
 
     public function assignToMe(int $feedbackId, AssignGuestFeedbackAction $assignFeedback): void
     {
-        $this->authorize('manage', GuestFeedback::class);
+        $feedback = GuestFeedback::findOrFail($feedbackId);
+        $this->authorize('manage', $feedback);
 
-        $assignFeedback->handle(GuestFeedback::findOrFail($feedbackId), auth()->user());
+        $assignFeedback->handle($feedback, auth()->user());
         unset($this->feedback);
     }
 
     public function startResolve(int $feedbackId): void
     {
-        $this->authorize('manage', GuestFeedback::class);
+        $this->authorize('manage', GuestFeedback::findOrFail($feedbackId));
 
         $this->resolvingId = $feedbackId;
         $this->resolutionNotes = '';
@@ -109,11 +110,12 @@ class FeedbackManager extends Component
 
     public function resolve(ResolveGuestFeedbackAction $resolveFeedback): void
     {
-        $this->authorize('manage', GuestFeedback::class);
+        $feedback = GuestFeedback::findOrFail($this->resolvingId);
+        $this->authorize('manage', $feedback);
 
         $this->validate(['resolutionNotes' => ['required', 'string', 'max:2000']]);
 
-        $resolveFeedback->handle(GuestFeedback::findOrFail($this->resolvingId), $this->resolutionNotes);
+        $resolveFeedback->handle($feedback, $this->resolutionNotes);
 
         $this->resolvingId = null;
         unset($this->feedback);

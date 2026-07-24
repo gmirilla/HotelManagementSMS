@@ -33,6 +33,6 @@
 
     <p class="mt-6 text-center text-sm text-slate-600">
         Already have an account?
-        <a href="{{ route('login') }}" class="font-medium text-indigo-600 hover:text-indigo-500">Log in</a>
+        <a href="{{ route('login') }}" class="font-medium text-brand-600 hover:text-brand-500">Log in</a>
     </p>
 </x-layouts.guest>

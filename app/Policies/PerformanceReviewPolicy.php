@@ -20,7 +20,8 @@ class PerformanceReviewPolicy
 
     public function view(User $user, PerformanceReview $review): bool
     {
-        return $user->hasPermissionTo('hr.manage') || $user->id === $review->employee->user_id;
+        return ($user->canAccessBranch($review->employee->branch_id) && $user->hasPermissionTo('hr.manage'))
+            || $user->id === $review->employee->user_id;
     }
 
     public function create(User $user): bool

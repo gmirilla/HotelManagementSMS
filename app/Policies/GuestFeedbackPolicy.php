@@ -24,8 +24,8 @@ class GuestFeedbackPolicy
         return $user->hasAnyPermission(['crm.manage', 'crm.view']);
     }
 
-    public function manage(User $user): bool
+    public function manage(User $user, GuestFeedback $feedback): bool
     {
-        return $user->hasPermissionTo('crm.manage');
+        return $user->canAccessBranch($feedback->branch_id) && $user->hasPermissionTo('crm.manage');
     }
 }

@@ -16,7 +16,7 @@ class CorporateAccountPolicy
 
     public function view(User $user, CorporateAccount $corporateAccount): bool
     {
-        return $user->hasAnyPermission(['crm.manage', 'crm.view']);
+        return $user->tenant_id === $corporateAccount->tenant_id && $user->hasAnyPermission(['crm.manage', 'crm.view']);
     }
 
     public function create(User $user): bool
@@ -26,6 +26,6 @@ class CorporateAccountPolicy
 
     public function update(User $user, CorporateAccount $corporateAccount): bool
     {
-        return $user->hasPermissionTo('crm.manage');
+        return $user->tenant_id === $corporateAccount->tenant_id && $user->hasPermissionTo('crm.manage');
     }
 }

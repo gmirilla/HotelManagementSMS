@@ -9,11 +9,11 @@
 
         @can('events.manage')
             @if ($tab === 'spaces')
-                <button wire:click="createSpace" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                <button wire:click="createSpace" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                     New space
                 </button>
             @else
-                <button wire:click="createService" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                <button wire:click="createService" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                     New service
                 </button>
             @endif
@@ -30,7 +30,7 @@
     </div>
 
     @if ($showSpaceForm)
-        <form wire:submit="saveSpace" class="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-3">
+        <form wire:submit="saveSpace" class="mb-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6 sm:grid-cols-3">
             <div>
                 <x-input-label value="Name" />
                 <x-text-input type="text" wire:model="spaceName" />
@@ -54,7 +54,7 @@
     @endif
 
     @if ($showServiceForm)
-        <form wire:submit="saveService" class="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-3">
+        <form wire:submit="saveService" class="mb-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6 sm:grid-cols-3">
             <div>
                 <x-input-label value="Name" />
                 <x-text-input type="text" wire:model="serviceName" />
@@ -81,7 +81,7 @@
     @endif
 
     @if ($tab === 'spaces')
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                     <tr><th class="px-4 py-3">Name</th><th class="px-4 py-3">Capacity</th><th class="px-4 py-3">Hourly rate</th><th class="px-4 py-3"></th></tr>
@@ -109,7 +109,7 @@
     @endif
 
     @if ($tab === 'services')
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                     <tr><th class="px-4 py-3">Name</th><th class="px-4 py-3">Category</th><th class="px-4 py-3">Unit price</th></tr>

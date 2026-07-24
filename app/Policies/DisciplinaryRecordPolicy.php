@@ -20,7 +20,8 @@ class DisciplinaryRecordPolicy
 
     public function view(User $user, DisciplinaryRecord $record): bool
     {
-        return $user->hasPermissionTo('hr.manage') || $user->id === $record->employee->user_id;
+        return ($user->canAccessBranch($record->employee->branch_id) && $user->hasPermissionTo('hr.manage'))
+            || $user->id === $record->employee->user_id;
     }
 
     public function create(User $user): bool

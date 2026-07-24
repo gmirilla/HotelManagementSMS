@@ -12,7 +12,7 @@
             @endforeach
         </div>
 
-        <a href="{{ route('dashboard') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+        <a href="{{ route('dashboard') }}" class="text-sm font-medium text-brand-600 hover:text-brand-500">
             Continue to dashboard &rarr;
         </a>
     </div>

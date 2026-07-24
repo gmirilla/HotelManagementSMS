@@ -5,7 +5,7 @@
         <div class="flex flex-wrap gap-2">
             @foreach ($this->outlets as $outlet)
                 <button wire:click="$set('selectedOutletId', {{ $outlet->id }})"
-                    @class(['rounded-md px-3 py-1.5 text-sm font-medium', 'bg-indigo-600 text-white' => $selectedOutletId === $outlet->id, 'bg-slate-100 text-slate-600' => $selectedOutletId !== $outlet->id])>
+                    @class(['rounded-md px-3 py-1.5 text-sm font-medium', 'bg-brand-600 text-white' => $selectedOutletId === $outlet->id, 'bg-slate-100 text-slate-600' => $selectedOutletId !== $outlet->id])>
                     {{ $outlet->name }}
                 </button>
             @endforeach
@@ -14,7 +14,7 @@
 
     @if (! $activeOrderId)
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-3 font-medium text-slate-800">Tables</h2>
                 <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
                     @foreach ($this->tables as $table)
@@ -30,7 +30,7 @@
                 </div>
             </div>
 
-            <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-3 font-medium text-slate-800">Room service</h2>
                 <input type="search" wire:model.live.debounce.300ms="guestSearch" placeholder="Search guest by last name&hellip;"
                     class="mb-3 block w-full rounded-md border-slate-300 text-sm shadow-sm">
@@ -46,13 +46,13 @@
     @else
         @php $order = $this->activeOrder; @endphp
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div class="lg:col-span-2 rounded-lg border border-slate-200 bg-white p-5">
+            <div class="lg:col-span-2 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-3 font-medium text-slate-800">Menu</h2>
                 @foreach ($this->menu as $categoryName => $items)
                     <p class="mb-1 mt-3 text-xs font-semibold uppercase text-slate-400">{{ $categoryName }}</p>
                     <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
                         @foreach ($items as $item)
-                            <button wire:click="addItem({{ $item->id }})" class="rounded-md border border-slate-200 p-2 text-left text-sm hover:border-indigo-300">
+                            <button wire:click="addItem({{ $item->id }})" class="rounded-md border border-slate-200 p-2 text-left text-sm hover:border-brand-300">
                                 <span class="block font-medium text-slate-700">{{ $item->name }}</span>
                                 <span class="text-slate-500">${{ number_format($item->price_cents / 100, 2) }}</span>
                             </button>
@@ -61,7 +61,7 @@
                 @endforeach
             </div>
 
-            <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-1 font-medium text-slate-800">
                     Order — {{ $order->table ? 'Table '.$order->table->label : $order->guest?->fullName() }}
                 </h2>
@@ -85,7 +85,7 @@
 
                 <div class="mt-4 flex flex-col gap-2">
                     @if ($order->status->value === 'open')
-                        <button wire:click="sendToKitchen" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500">
+                        <button wire:click="sendToKitchen" class="rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-500">
                             Send to kitchen
                         </button>
                     @endif

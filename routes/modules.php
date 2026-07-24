@@ -8,6 +8,8 @@ use App\Livewire\Accounting\ChartOfAccounts;
 use App\Livewire\Accounting\FinancialReports;
 use App\Livewire\Accounting\JournalEntryManager;
 use App\Livewire\Accounting\TaxRuleManager;
+use App\Livewire\Admin\AppearanceSettings;
+use App\Livewire\Admin\UserManager;
 use App\Livewire\CRM\CorporateAccountManager;
 use App\Livewire\CRM\CouponManager;
 use App\Livewire\CRM\FeedbackManager;
@@ -88,4 +90,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('events/spaces', EventSpaceManager::class)->name('events.spaces');
     Route::get('events/bookings', EventBookingManager::class)->name('events.bookings');
+
+    Route::get('admin/users', UserManager::class)->name('admin.users');
+    Route::get('admin/appearance', AppearanceSettings::class)->name('admin.appearance');
 });

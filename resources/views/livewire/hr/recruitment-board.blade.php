@@ -3,14 +3,14 @@
         <h1 class="text-xl font-semibold text-slate-900">Recruitment</h1>
 
         @can('hr.manage')
-            <button wire:click="createOpening" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            <button wire:click="createOpening" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                 New job opening
             </button>
         @endcan
     </div>
 
     @if ($showOpeningForm)
-        <form wire:submit="saveOpening" class="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-2">
+        <form wire:submit="saveOpening" class="mb-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6 sm:grid-cols-2">
             <div>
                 <x-input-label value="Title" />
                 <x-text-input type="text" wire:model="title" />
@@ -33,14 +33,14 @@
     @endif
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white lg:col-span-1">
+        <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 lg:col-span-1">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                     <tr><th class="px-4 py-3">Opening</th><th class="px-4 py-3">Candidates</th></tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse ($this->jobOpenings as $opening)
-                        <tr wire:key="opening-{{ $opening->id }}" wire:click="select({{ $opening->id }})" @class(['cursor-pointer hover:bg-slate-50', 'bg-indigo-50' => $selectedOpeningId === $opening->id])>
+                        <tr wire:key="opening-{{ $opening->id }}" wire:click="select({{ $opening->id }})" @class(['cursor-pointer hover:bg-slate-50', 'bg-brand-50' => $selectedOpeningId === $opening->id])>
                             <td class="px-4 py-2">
                                 <p class="font-medium text-slate-800">{{ $opening->title }}</p>
                                 <p class="text-xs text-slate-500">{{ $opening->department }} — {{ ucfirst(str_replace('_', ' ', $opening->status->value)) }}</p>
@@ -63,7 +63,7 @@
                     </div>
                     @can('hr.manage')
                         <div class="flex gap-3">
-                            <button wire:click="addCandidate" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Add candidate</button>
+                            <button wire:click="addCandidate" class="text-sm font-medium text-brand-600 hover:text-brand-500">Add candidate</button>
                             @if ($this->selectedOpening->status->value === 'open')
                                 <button wire:click="closeOpening({{ $this->selectedOpening->id }})" class="text-sm font-medium text-red-600 hover:text-red-500">Close opening</button>
                             @endif
@@ -72,7 +72,7 @@
                 </div>
 
                 @if ($showCandidateForm)
-                    <form wire:submit="saveCandidate" class="mb-4 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-3">
+                    <form wire:submit="saveCandidate" class="mb-4 grid grid-cols-1 gap-4 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-4 sm:grid-cols-3">
                         <div>
                             <x-input-label value="Name" />
                             <x-text-input type="text" wire:model="candidateName" />
@@ -94,7 +94,7 @@
                     </form>
                 @endif
 
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                <div class="overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5">
                     <table class="min-w-full divide-y divide-slate-200 text-sm">
                         <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                             <tr><th class="px-4 py-3">Candidate</th><th class="px-4 py-3">Stage</th><th class="px-4 py-3"></th></tr>
