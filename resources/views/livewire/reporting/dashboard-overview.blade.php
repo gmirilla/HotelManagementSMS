@@ -284,7 +284,7 @@
         </a>
     </div>
 
-    @if (auth()->user()->can('viewAny', App\Models\User::class) || auth()->user()->can('settings.manage'))
+    @if (auth()->user()->can('viewAny', App\Models\User::class) || auth()->user()->can('settings.manage') || auth()->user()->can('branches.manage'))
         <h2 class="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
             <span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
             Administration
@@ -297,7 +297,19 @@
                     <span class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 opacity-0 transition group-hover:opacity-100">Open <span aria-hidden="true">&rarr;</span></span>
                 </a>
             @endcan
+            @if (auth()->user()->can('branches.manage'))
+                <a href="{{ route('admin.branches') }}" class="group relative flex flex-col rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-900/5">
+                    <h2 class="font-medium text-slate-800 group-hover:text-brand-700">Branches</h2>
+                    <p class="mt-1 text-sm text-slate-500">Add and manage the properties in your organization.</p>
+                    <span class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 opacity-0 transition group-hover:opacity-100">Open <span aria-hidden="true">&rarr;</span></span>
+                </a>
+            @endif
             @if (auth()->user()->can('settings.manage'))
+                <a href="{{ route('admin.hotel-settings') }}" class="group relative flex flex-col rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-900/5">
+                    <h2 class="font-medium text-slate-800 group-hover:text-brand-700">Hotel Settings</h2>
+                    <p class="mt-1 text-sm text-slate-500">Hotel name, logo, default currency, and timezone.</p>
+                    <span class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 opacity-0 transition group-hover:opacity-100">Open <span aria-hidden="true">&rarr;</span></span>
+                </a>
                 <a href="{{ route('admin.appearance') }}" class="group relative flex flex-col rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-900/5">
                     <h2 class="font-medium text-slate-800 group-hover:text-brand-700">Appearance</h2>
                     <p class="mt-1 text-sm text-slate-500">Choose a brand color for your organization.</p>

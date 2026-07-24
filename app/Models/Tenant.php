@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Override;
 
-#[Fillable(['name', 'slug', 'default_currency', 'default_timezone', 'is_active', 'brand_color'])]
+#[Fillable(['name', 'slug', 'default_currency', 'default_timezone', 'is_active', 'brand_color', 'logo_path'])]
 class Tenant extends Model
 {
     /** @use HasFactory<TenantFactory> */

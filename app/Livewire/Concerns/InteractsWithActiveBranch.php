@@ -32,10 +32,10 @@ trait InteractsWithActiveBranch
         $user = auth()->user();
 
         if ($user->hasAnyRole(['Super Administrator', 'Hotel Owner', 'General Manager', 'Auditor'])) {
-            return Branch::where('tenant_id', $user->tenant_id)->orderBy('name')->get();
+            return Branch::where('tenant_id', $user->tenant_id)->where('is_active', true)->orderBy('name')->get();
         }
 
-        return $user->branches()->orderBy('name')->get();
+        return $user->branches()->where('is_active', true)->orderBy('name')->get();
     }
 
     #[Computed]
