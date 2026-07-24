@@ -1,0 +1,1451 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Aurora Hotels — Hotel Management System API",
+        "description": "Versioned REST API for authentication, bookings, guests, rooms, invoices, payments, and reports (FR-API-001). All responses use consistent API Resource transformers; all errors share a single {\"error\": {code, message, errors?}} envelope (FR-API-003).",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api/v1",
+            "description": "Default API server"
+        }
+    ],
+    "paths": {
+        "/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Exchange credentials for a Sanctum API token",
+                "operationId": "985cd5203e2d0a820e113f2f4fdb2847",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password",
+                                    "device_name"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "device_name": {
+                                        "type": "string",
+                                        "example": "my-integration"
+                                    },
+                                    "mfa_code": {
+                                        "description": "Required if the account has MFA enabled",
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Authenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                },
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "1|abcdef123456..."
+                                                },
+                                                "abilities": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid credentials or MFA code",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Revoke the current API token",
+                "operationId": "a05022a34eef599e04fb0a5254375b84",
+                "responses": {
+                    "200": {
+                        "description": "Logged out"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get the authenticated user's profile",
+                "operationId": "e339e0e74860c0647fd1d41bbbbc13b2",
+                "responses": {
+                    "200": {
+                        "description": "Current user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/folios/{folio}": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Show an invoice (folio) with its charges and payments",
+                "operationId": "9268661259c8e4bbd749aa753849d551",
+                "parameters": [
+                    {
+                        "name": "folio",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Folio",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Folio"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/guests": {
+            "get": {
+                "tags": [
+                    "Guests"
+                ],
+                "summary": "List/search guests",
+                "operationId": "ce9d0298984f85ba2015163dfb3530a2",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated guests",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Guest"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Guests"
+                ],
+                "summary": "Create a guest profile",
+                "operationId": "fa11462ec637cff9fe913091616f2c4d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "first_name",
+                                    "last_name"
+                                ],
+                                "properties": {
+                                    "first_name": {
+                                        "type": "string"
+                                    },
+                                    "last_name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "nullable": true
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "nationality": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Guest"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/guests/{guest}": {
+            "get": {
+                "tags": [
+                    "Guests"
+                ],
+                "summary": "Show a guest profile",
+                "operationId": "84598ec230dee1ab0fe37f3a108de9e1",
+                "parameters": [
+                    {
+                        "name": "guest",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Guest",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Guest"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Guests"
+                ],
+                "summary": "Update a guest profile",
+                "operationId": "dfb6897b09b67888353fdb63b3349832",
+                "parameters": [
+                    {
+                        "name": "guest",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "first_name": {
+                                        "type": "string"
+                                    },
+                                    "last_name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "nullable": true
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Guest"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/folios/{folio}/payments": {
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Record a payment against an invoice (cash, POS, or bank transfer only — gateway methods are webhook-driven)",
+                "operationId": "7f5251ddb207004aa979808c1dfcf069",
+                "parameters": [
+                    {
+                        "name": "folio",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "method",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "cash",
+                                            "pos_terminal",
+                                            "bank_transfer"
+                                        ]
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 150
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Payment recorded",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Payment"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/reports/occupancy": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Occupancy rate for a branch on a given date",
+                "operationId": "c9070d80dbdd90f8945119ea8e65c5cf",
+                "parameters": [
+                    {
+                        "name": "branch_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "schema": {
+                            "description": "Defaults to today",
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Occupancy report",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "date": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "total_rooms": {
+                                                    "type": "integer"
+                                                },
+                                                "occupied_rooms": {
+                                                    "type": "integer"
+                                                },
+                                                "occupancy_rate": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 0.72
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/reports/revenue": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Revenue for a branch over a date range, broken down by charge type",
+                "operationId": "860094fef4d4af10553e20f1f1429913",
+                "parameters": [
+                    {
+                        "name": "branch_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Revenue report",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "start": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "end": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "total_cents": {
+                                                    "type": "integer"
+                                                },
+                                                "by_charge_type": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "charge_type": {
+                                                                "type": "string"
+                                                            },
+                                                            "amount_cents": {
+                                                                "type": "integer"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/reservations": {
+            "get": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "List bookings",
+                "operationId": "573c89dfb714acb02c1b2f4826b22f0d",
+                "parameters": [
+                    {
+                        "name": "branch_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "guest_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated bookings",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Reservation"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Create a booking",
+                "operationId": "dccb73c16710c16c1ee2391ae06b2e09",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "branch_id",
+                                    "guest_id",
+                                    "room_type_id",
+                                    "arrival_date",
+                                    "departure_date",
+                                    "adults"
+                                ],
+                                "properties": {
+                                    "branch_id": {
+                                        "type": "integer"
+                                    },
+                                    "guest_id": {
+                                        "type": "integer"
+                                    },
+                                    "room_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "arrival_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "departure_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "adults": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "children": {
+                                        "type": "integer",
+                                        "example": 0
+                                    },
+                                    "source": {
+                                        "type": "string",
+                                        "example": "online"
+                                    },
+                                    "corporate_account_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "special_requests": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Reservation"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "No availability / validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/reservations/{reservation}": {
+            "get": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Show a booking",
+                "operationId": "42f417a78cf996da1053c90767936fc4",
+                "parameters": [
+                    {
+                        "name": "reservation",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Booking",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Reservation"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/reservations/{reservation}/cancel": {
+            "post": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Cancel a booking",
+                "operationId": "09cb88f02584fd3227ef648dcdf3d744",
+                "parameters": [
+                    {
+                        "name": "reservation",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cancelled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Reservation"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Booking cannot be cancelled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/room-types": {
+            "get": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "List room types for a branch",
+                "operationId": "81632eb38c70d50132dc6650f0d4f3e2",
+                "parameters": [
+                    {
+                        "name": "branch_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Room types",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/RoomType"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/room-types/{roomType}/availability": {
+            "get": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Check room availability for a date range",
+                "operationId": "f4caca0a6bb2d86b2f4b1f0ba0be31f0",
+                "parameters": [
+                    {
+                        "name": "roomType",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "arrival_date",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "departure_date",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Availability",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "room_type_id": {
+                                                    "type": "integer"
+                                                },
+                                                "available_rooms": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ErrorEnvelope": {
+                "properties": {
+                    "error": {
+                        "properties": {
+                            "code": {
+                                "type": "string",
+                                "example": "validation_error"
+                            },
+                            "message": {
+                                "type": "string",
+                                "example": "The given data was invalid."
+                            },
+                            "errors": {
+                                "type": "object",
+                                "nullable": true,
+                                "additionalProperties": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "Folio": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "branch_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "reservation_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "guest_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "open"
+                    },
+                    "balance_cents": {
+                        "type": "integer",
+                        "example": 15000
+                    },
+                    "charges": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "charge_type": {
+                                    "type": "string"
+                                },
+                                "description": {
+                                    "type": "string"
+                                },
+                                "amount_cents": {
+                                    "type": "integer"
+                                },
+                                "charge_date": {
+                                    "type": "string",
+                                    "format": "date"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "payments": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "method": {
+                                    "type": "string"
+                                },
+                                "amount_cents": {
+                                    "type": "integer"
+                                },
+                                "status": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "Guest": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "example": "Jane"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "example": "Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true
+                    },
+                    "phone": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "nationality": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "guest_type": {
+                        "type": "string",
+                        "example": "individual"
+                    },
+                    "flag": {
+                        "type": "string",
+                        "example": "none"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Payment": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "folio_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "method": {
+                        "type": "string",
+                        "example": "cash"
+                    },
+                    "amount_cents": {
+                        "type": "integer",
+                        "example": 5000
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "USD"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "completed"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Reservation": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "confirmation_code": {
+                        "type": "string",
+                        "example": "RES-A1B2C3"
+                    },
+                    "branch_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "guest_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "confirmed"
+                    },
+                    "source": {
+                        "type": "string",
+                        "example": "online"
+                    },
+                    "arrival_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "departure_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "nights": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "adults": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "children": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "special_requests": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "cancellation_fee_cents": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "cancelled_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "rooms": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "room_type_id": {
+                                    "type": "integer"
+                                },
+                                "room_id": {
+                                    "type": "integer",
+                                    "nullable": true
+                                },
+                                "rate_cents": {
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "RoomType": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "branch_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Deluxe"
+                    },
+                    "slug": {
+                        "type": "string",
+                        "example": "deluxe"
+                    },
+                    "base_capacity_adults": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "base_capacity_children": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "base_rate_cents": {
+                        "type": "integer",
+                        "example": 15000
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Aurora Owner"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "owner@aurorahotels.test"
+                    },
+                    "current_branch_id": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "roles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "Branch Manager"
+                        ]
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Sanctum personal access token. Send as `Authorization: Bearer {token}`. Tokens are scoped by ability (FR-API-004) — see the abilities returned at login.",
+                "bearerFormat": "Opaque token issued by POST /auth/login",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Invoices",
+            "description": "Invoices"
+        },
+        {
+            "name": "Guests",
+            "description": "Guests"
+        },
+        {
+            "name": "Payments",
+            "description": "Payments"
+        },
+        {
+            "name": "Reports",
+            "description": "Reports"
+        },
+        {
+            "name": "Bookings",
+            "description": "Bookings"
+        },
+        {
+            "name": "Rooms",
+            "description": "Rooms"
+        }
+    ]
+}
