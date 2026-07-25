@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Domain\Accounting\Enums\AccountType;
+use App\Models\Account;
+use App\Models\Branch;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -79,5 +82,31 @@ function browserTest(Closure $interaction): void
         $interaction();
     } catch (Throwable $e) {
         test()->markTestSkipped('Playwright browser unavailable in this environment: ' . $e->getMessage());
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Chart of Accounts fixture (FR-ACC-002)
+|--------------------------------------------------------------------------
+|
+| FolioLedgerPoster/CorporateLedgerPoster (app/Domain/Accounting/Support/)
+| resolve accounts by branch + code and throw a clear error if one is
+| missing, on purpose — a bare Branch::factory()->create() has no chart of
+| accounts at all, so any test that checks in a guest, posts a folio
+| charge, records a folio/AR/AP payment needs this first. Codes match
+| HotelDemoSeeder::seedAccounting() exactly.
+*/
+function seedChartOfAccounts(Branch $branch): void
+{
+    foreach ([
+        ['code' => '1000', 'name' => 'Cash', 'account_type' => AccountType::Asset],
+        ['code' => '1100', 'name' => 'Accounts Receivable', 'account_type' => AccountType::Asset],
+        ['code' => '2000', 'name' => 'Accounts Payable', 'account_type' => AccountType::Liability],
+        ['code' => '2100', 'name' => 'Taxes Payable', 'account_type' => AccountType::Liability],
+        ['code' => '4000', 'name' => 'Room Revenue', 'account_type' => AccountType::Revenue],
+        ['code' => '4100', 'name' => 'Restaurant Revenue', 'account_type' => AccountType::Revenue],
+    ] as $account) {
+        Account::factory()->create([...$account, 'branch_id' => $branch->id]);
     }
 }

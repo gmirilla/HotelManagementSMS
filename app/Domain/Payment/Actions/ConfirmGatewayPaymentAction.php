@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Payment\Actions;
 
+use App\Domain\Accounting\Support\FolioLedgerPoster;
 use App\Domain\FrontDesk\Support\FolioBalanceCalculator;
 use App\Domain\Payment\Enums\PaymentStatus;
 use App\Domain\Payment\Gateways\PaystackGateway;
@@ -19,7 +20,10 @@ use App\Models\Payment;
  */
 class ConfirmGatewayPaymentAction
 {
-    public function __construct(private readonly FolioBalanceCalculator $balanceCalculator) {}
+    public function __construct(
+        private readonly FolioBalanceCalculator $balanceCalculator,
+        private readonly FolioLedgerPoster $ledgerPoster,
+    ) {}
 
     public function handle(string $reference): Payment
     {
@@ -43,6 +47,10 @@ class ConfirmGatewayPaymentAction
         if ($payment->folio) {
             $this->balanceCalculator->recalculate($payment->folio);
         }
+
+        // No $staff here — this can be triggered by an unauthenticated
+        // webhook request, not just the browser callback.
+        $this->ledgerPoster->postPayment($payment, null);
 
         return $payment->fresh();
     }

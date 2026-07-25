@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Payment\Actions;
 
+use App\Domain\Accounting\Support\FolioLedgerPoster;
 use App\Domain\FrontDesk\Support\FolioBalanceCalculator;
 use App\Domain\Payment\Enums\PaymentStatus;
 use App\Domain\Payment\Gateways\PaystackGateway;
 use App\Models\Payment;
+use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -18,9 +20,12 @@ use Illuminate\Validation\ValidationException;
  */
 class RefundGatewayPaymentAction
 {
-    public function __construct(private readonly FolioBalanceCalculator $balanceCalculator) {}
+    public function __construct(
+        private readonly FolioBalanceCalculator $balanceCalculator,
+        private readonly FolioLedgerPoster $ledgerPoster,
+    ) {}
 
-    public function handle(Payment $payment, ?string $reason): Payment
+    public function handle(Payment $payment, ?string $reason, ?User $staff = null): Payment
     {
         if ($payment->status !== PaymentStatus::Completed) {
             throw ValidationException::withMessages(['status' => __('Only a completed payment can be refunded.')]);
@@ -42,6 +47,8 @@ class RefundGatewayPaymentAction
         if ($payment->folio) {
             $this->balanceCalculator->recalculate($payment->folio);
         }
+
+        $this->ledgerPoster->postRefund($payment, $staff);
 
         return $payment->fresh();
     }

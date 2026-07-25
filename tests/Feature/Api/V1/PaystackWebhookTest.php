@@ -13,6 +13,7 @@ function makeWebhookPayment(string $secretKey = 'sk_test_fake'): Payment
 {
     $tenant = Tenant::factory()->create(['paystack_secret_key' => $secretKey]);
     $branch = Branch::factory()->create(['tenant_id' => $tenant->id]);
+    seedChartOfAccounts($branch);
 
     return Payment::factory()->create([
         'branch_id' => $branch->id,

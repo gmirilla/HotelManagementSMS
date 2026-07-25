@@ -135,6 +135,7 @@ test('closing a dine-in order frees its table', function (): void {
 
 test('closing a room-service order posts the total to the guest open folio', function (): void {
     $branch = Branch::factory()->create();
+    seedChartOfAccounts($branch);
     [$outlet, $menuItem] = makeMenuItemWithIngredient($branch);
     $guest = Guest::factory()->create(['tenant_id' => $branch->tenant_id]);
     $folio = Folio::factory()->create(['branch_id' => $branch->id, 'guest_id' => $guest->id, 'balance_cents' => 0]);

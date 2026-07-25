@@ -9,6 +9,7 @@ use App\Domain\Payment\Actions\RecordFolioPaymentAction;
 use App\Domain\Reservation\Enums\ReservationStatus;
 use App\Domain\Room\Enums\RoomStatus;
 use App\Models\Branch;
+use App\Models\JournalEntry;
 use App\Models\Reservation;
 use App\Models\ReservationRoom;
 use App\Models\Room;
@@ -19,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 function makeReadyReservation(int $nights = 2): array
 {
     $branch = Branch::factory()->create();
+    seedChartOfAccounts($branch);
     $roomType = RoomType::factory()->create(['branch_id' => $branch->id, 'base_rate_cents' => 10000]);
     $room = Room::factory()->create(['branch_id' => $branch->id, 'room_type_id' => $roomType->id, 'status' => RoomStatus::VacantClean]);
     $reservation = Reservation::factory()->create([
@@ -48,6 +50,11 @@ test('checking in assigns the room, opens a pre-charged folio, and occupies the 
         ->and($folio->charges)->toHaveCount(2)
         ->and($folio->balance_cents)->toBe(20000)
         ->and($reservation->fresh()->rooms->first()->room_id)->toBe($room->id);
+
+    $entries = JournalEntry::whereIn('reference_id', $folio->charges->pluck('id'))->where('reference_type', $folio->charges->first()->getMorphClass())->get();
+    expect($entries)->toHaveCount(2)
+        ->and($entries->every(fn (JournalEntry $entry): bool => $entry->isBalanced()))->toBeTrue()
+        ->and($entries->sum(fn (JournalEntry $entry): int => $entry->totalDebitCents()))->toBe(20000);
 });
 
 test('a room mismatched to the booked room type cannot be used for check-in', function (): void {
@@ -111,6 +118,10 @@ test('posting an extra charge and a payment keeps the folio balance correct', fu
     app(PostFolioChargeAction::class)->handle($folio, 'restaurant', 'Room service', 2500, $staff);
     expect($folio->fresh()->balance_cents)->toBe(12500);
 
-    app(RecordFolioPaymentAction::class)->handle($folio, 'cash', 12500, $staff);
+    $payment = app(RecordFolioPaymentAction::class)->handle($folio, 'cash', 12500, $staff);
     expect($folio->fresh()->balance_cents)->toBe(0);
+
+    $paymentEntry = JournalEntry::where('reference_type', $payment->getMorphClass())->where('reference_id', $payment->id)->firstOrFail();
+    expect($paymentEntry->isBalanced())->toBeTrue()
+        ->and($paymentEntry->totalDebitCents())->toBe(12500);
 });

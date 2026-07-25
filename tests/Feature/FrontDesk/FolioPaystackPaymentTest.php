@@ -32,6 +32,7 @@ function makeFolioAndCashier(): array
 
     $tenant = Tenant::factory()->create(['paystack_secret_key' => 'sk_test_fake']);
     $branch = Branch::factory()->create(['tenant_id' => $tenant->id]);
+    seedChartOfAccounts($branch);
     $guest = Guest::factory()->create(['tenant_id' => $tenant->id, 'email' => 'guest@example.com']);
     $folio = Folio::factory()->create(['branch_id' => $branch->id, 'guest_id' => $guest->id, 'status' => FolioStatus::Open]);
     $folio->charges()->create(['charge_type' => ChargeType::Room, 'description' => 'Room charge', 'amount_cents' => 20000, 'charge_date' => now()->toDateString()]);

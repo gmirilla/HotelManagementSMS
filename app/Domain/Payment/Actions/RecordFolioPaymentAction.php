@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Payment\Actions;
 
+use App\Domain\Accounting\Support\FolioLedgerPoster;
 use App\Domain\FrontDesk\Support\FolioBalanceCalculator;
 use App\Domain\Payment\Enums\PaymentMethod;
 use App\Domain\Payment\Enums\PaymentStatus;
@@ -24,7 +25,10 @@ use Illuminate\Validation\ValidationException;
  */
 class RecordFolioPaymentAction
 {
-    public function __construct(private readonly FolioBalanceCalculator $balanceCalculator) {}
+    public function __construct(
+        private readonly FolioBalanceCalculator $balanceCalculator,
+        private readonly FolioLedgerPoster $ledgerPoster,
+    ) {}
 
     public function handle(Folio $folio, string $method, int $amountCents, User $staff): Payment
     {
@@ -47,6 +51,7 @@ class RecordFolioPaymentAction
         ]);
 
         $this->balanceCalculator->recalculate($folio);
+        $this->ledgerPoster->postPayment($payment, $staff);
 
         return $payment;
     }

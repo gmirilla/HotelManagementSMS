@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\FrontDesk\Actions;
 
+use App\Domain\Accounting\Support\FolioLedgerPoster;
 use App\Domain\FrontDesk\Enums\ChargeType;
 use App\Domain\FrontDesk\Enums\FolioStatus;
 use App\Domain\FrontDesk\Support\FolioBalanceCalculator;
@@ -29,6 +30,7 @@ class CheckInGuestAction
     public function __construct(
         private readonly RateResolver $rateResolver,
         private readonly FolioBalanceCalculator $balanceCalculator,
+        private readonly FolioLedgerPoster $ledgerPoster,
     ) {}
 
     public function handle(Reservation $reservation, Room $room, User $staff): Folio
@@ -84,13 +86,15 @@ class CheckInGuestAction
             $nightlyRates = $this->rateResolver->nightlyRatesForStay($room->roomType, $reservation->arrival_date, $reservation->departure_date);
 
             foreach ($nightlyRates as $date => $rateCents) {
-                $folio->charges()->create([
+                $charge = $folio->charges()->create([
                     'charge_type' => ChargeType::Room,
                     'description' => "Room {$room->room_number} — {$date}",
                     'amount_cents' => $rateCents,
                     'charge_date' => $date,
                     'posted_by_user_id' => $staff->id,
                 ]);
+                $charge->setRelation('folio', $folio);
+                $this->ledgerPoster->postCharge($charge, $staff);
             }
 
             $this->balanceCalculator->recalculate($folio);

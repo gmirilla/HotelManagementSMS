@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\FrontDesk\Actions;
 
+use App\Domain\Accounting\Support\FolioLedgerPoster;
 use App\Domain\FrontDesk\Enums\ChargeType;
 use App\Domain\FrontDesk\Support\FolioBalanceCalculator;
 use App\Domain\Reservation\Enums\ReservationStatus;
@@ -39,6 +40,7 @@ class ChangeReservationRoomAction
     public function __construct(
         private readonly RateResolver $rateResolver,
         private readonly FolioBalanceCalculator $balanceCalculator,
+        private readonly FolioLedgerPoster $ledgerPoster,
     ) {}
 
     public function handle(Reservation $reservation, Room $newRoom, User $staff, ?string $reason = null): ReservationRoom
@@ -139,25 +141,29 @@ class ChangeReservationRoomAction
             ->sum('amount_cents');
 
         if ($reversedCents !== 0) {
-            $folio->charges()->create([
+            $reversal = $folio->charges()->create([
                 'charge_type' => ChargeType::Room->value,
                 'description' => __('Room change — reversing remaining nights at previous rate'),
                 'amount_cents' => -$reversedCents,
                 'charge_date' => $today->toDateString(),
                 'posted_by_user_id' => $staff->id,
             ]);
+            $reversal->setRelation('folio', $folio);
+            $this->ledgerPoster->postCharge($reversal, $staff);
         }
 
         $nightlyRates = $this->rateResolver->nightlyRatesForStay($newRoom->roomType, $today, $reservation->departure_date);
 
         foreach ($nightlyRates as $date => $rateCents) {
-            $folio->charges()->create([
+            $charge = $folio->charges()->create([
                 'charge_type' => ChargeType::Room->value,
                 'description' => "Room {$newRoom->room_number} — {$date}",
                 'amount_cents' => $rateCents,
                 'charge_date' => $date,
                 'posted_by_user_id' => $staff->id,
             ]);
+            $charge->setRelation('folio', $folio);
+            $this->ledgerPoster->postCharge($charge, $staff);
         }
 
         $this->balanceCalculator->recalculate($folio);

@@ -7,6 +7,7 @@ use App\Domain\Branch\Actions\SetBranchActiveStatusAction;
 use App\Domain\Branch\Actions\UpdateBranchAction;
 use App\Livewire\Admin\BranchManager;
 use App\Livewire\FrontDesk\Dashboard;
+use App\Models\Account;
 use App\Models\Branch;
 use App\Models\Tenant;
 use App\Models\User;
@@ -33,6 +34,11 @@ test('creating a branch sets it active and scoped to the tenant', function (): v
     expect($branch->tenant_id)->toBe($tenant->id)
         ->and($branch->is_active)->toBeTrue()
         ->and($branch->code)->toBe('DTN-01');
+
+    // FR-ACC-001: a brand-new branch must be able to post folio charges
+    // and payments immediately, not fail with a missing-account error.
+    expect(Account::where('branch_id', $branch->id)->pluck('code')->sort()->values()->all())
+        ->toBe(['1000', '1100', '1200', '2000', '2100', '3000', '4000', '4100', '5000', '5100', '5200', '5300']);
 });
 
 test('updating a branch does not touch its active status', function (): void {

@@ -60,7 +60,7 @@ class ArApManager extends Component
 
         $this->validate(['paymentAmount' => ['required', 'numeric', 'min:0.01']]);
 
-        $recordPayment->handle($entry, (int) round(((float) $this->paymentAmount) * 100));
+        $recordPayment->handle($entry, (int) round(((float) $this->paymentAmount) * 100), auth()->user());
 
         $this->payingArId = null;
         unset($this->receivables);
@@ -79,7 +79,7 @@ class ArApManager extends Component
 
         $this->validate(['paymentAmount' => ['required', 'numeric', 'min:0.01']]);
 
-        $recordPayment->handle($entry, (int) round(((float) $this->paymentAmount) * 100));
+        $recordPayment->handle($entry, (int) round(((float) $this->paymentAmount) * 100), auth()->user());
 
         $this->payingApId = null;
         unset($this->payables);

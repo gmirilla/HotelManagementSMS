@@ -10,8 +10,10 @@ use App\Domain\Payment\Enums\PaymentMethod;
 use App\Domain\Payment\Enums\PaymentStatus;
 use App\Models\Branch;
 use App\Models\Folio;
+use App\Models\JournalEntry;
 use App\Models\Payment;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 
@@ -19,6 +21,7 @@ function makeCompletedGatewayPayment(int $amountCents = 20000): Payment
 {
     $tenant = Tenant::factory()->create(['paystack_secret_key' => 'sk_test_fake']);
     $branch = Branch::factory()->create(['tenant_id' => $tenant->id]);
+    seedChartOfAccounts($branch);
     $folio = Folio::factory()->create(['branch_id' => $branch->id, 'status' => FolioStatus::Open]);
     $folio->charges()->create(['charge_type' => ChargeType::Room, 'description' => 'Room charge', 'amount_cents' => $amountCents, 'charge_date' => now()->toDateString()]);
 
@@ -43,12 +46,18 @@ test('a successful refund flips the payment to Refunded and reopens the folio ba
 
     $payment = makeCompletedGatewayPayment(20000);
     expect($payment->folio->fresh()->balance_cents)->toBe(0);
+    $staff = User::factory()->create();
 
-    $refunded = app(RefundGatewayPaymentAction::class)->handle($payment, 'guest requested');
+    $refunded = app(RefundGatewayPaymentAction::class)->handle($payment, 'guest requested', $staff);
 
     expect($refunded->status)->toBe(PaymentStatus::Refunded)
         ->and($refunded->refund_reason)->toBe('guest requested')
         ->and($payment->folio->fresh()->balance_cents)->toBe(20000);
+
+    $entry = JournalEntry::where('reference_type', $payment->getMorphClass())->where('reference_id', $payment->id)->latest('id')->firstOrFail();
+    expect($entry->isBalanced())->toBeTrue()
+        ->and($entry->totalDebitCents())->toBe(20000)
+        ->and($entry->created_by_user_id)->toBe($staff->id);
 });
 
 test('only a completed payment can be refunded', function (): void {

@@ -12,6 +12,7 @@ use App\Models\Account;
 use App\Models\ApEntry;
 use App\Models\ArEntry;
 use App\Models\Branch;
+use App\Models\JournalEntry;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -84,6 +85,7 @@ test('a journal line amount must be greater than zero', function (): void {
 
 test('recording a partial AR payment flips status to partially paid', function (): void {
     $entry = ArEntry::factory()->create(['amount_cents' => 10000, 'paid_cents' => 0, 'status' => ArStatus::Open]);
+    seedChartOfAccounts($entry->branch);
 
     app(RecordArPaymentAction::class)->handle($entry, 4000);
 
@@ -92,38 +94,53 @@ test('recording a partial AR payment flips status to partially paid', function (
         ->and($entry->fresh()->outstandingCents())->toBe(6000);
 });
 
-test('recording a full AR payment flips status to paid', function (): void {
+test('recording a full AR payment flips status to paid and posts to the ledger', function (): void {
     $entry = ArEntry::factory()->create(['amount_cents' => 10000, 'paid_cents' => 0, 'status' => ArStatus::Open]);
+    seedChartOfAccounts($entry->branch);
+    $staff = User::factory()->create(['tenant_id' => $entry->branch->tenant_id]);
 
-    app(RecordArPaymentAction::class)->handle($entry, 10000);
+    app(RecordArPaymentAction::class)->handle($entry, 10000, $staff);
 
     expect($entry->fresh()->status)->toBe(ArStatus::Paid)
         ->and($entry->fresh()->outstandingCents())->toBe(0);
+
+    $ledgerEntry = JournalEntry::where('reference_type', $entry->getMorphClass())->where('reference_id', $entry->id)->firstOrFail();
+    expect($ledgerEntry->isBalanced())->toBeTrue()
+        ->and($ledgerEntry->totalDebitCents())->toBe(10000);
 });
 
 test('an AR payment exceeding the outstanding balance is rejected', function (): void {
     $entry = ArEntry::factory()->create(['amount_cents' => 10000, 'paid_cents' => 0, 'status' => ArStatus::Open]);
+    seedChartOfAccounts($entry->branch);
 
     app(RecordArPaymentAction::class)->handle($entry, 10001);
 })->throws(ValidationException::class);
 
 test('a written-off receivable cannot receive payments', function (): void {
     $entry = ArEntry::factory()->create(['amount_cents' => 10000, 'paid_cents' => 0, 'status' => ArStatus::WrittenOff]);
+    seedChartOfAccounts($entry->branch);
 
     app(RecordArPaymentAction::class)->handle($entry, 100);
 })->throws(ValidationException::class);
 
-test('recording a full AP payment flips status to paid', function (): void {
+test('recording a full AP payment flips status to paid and posts to the ledger', function (): void {
     $entry = ApEntry::factory()->create(['amount_cents' => 8000, 'paid_cents' => 0, 'status' => ApStatus::Open]);
+    seedChartOfAccounts($entry->branch);
+    $staff = User::factory()->create(['tenant_id' => $entry->branch->tenant_id]);
 
-    app(RecordApPaymentAction::class)->handle($entry, 8000);
+    app(RecordApPaymentAction::class)->handle($entry, 8000, $staff);
 
     expect($entry->fresh()->status)->toBe(ApStatus::Paid)
         ->and($entry->fresh()->outstandingCents())->toBe(0);
+
+    $ledgerEntry = JournalEntry::where('reference_type', $entry->getMorphClass())->where('reference_id', $entry->id)->firstOrFail();
+    expect($ledgerEntry->isBalanced())->toBeTrue()
+        ->and($ledgerEntry->totalDebitCents())->toBe(8000);
 });
 
 test('a disputed payable cannot be paid', function (): void {
     $entry = ApEntry::factory()->create(['amount_cents' => 8000, 'paid_cents' => 0, 'status' => ApStatus::Disputed]);
+    seedChartOfAccounts($entry->branch);
 
     app(RecordApPaymentAction::class)->handle($entry, 100);
 })->throws(ValidationException::class);

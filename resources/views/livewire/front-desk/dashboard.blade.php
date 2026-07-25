@@ -96,7 +96,10 @@
                         <p class="text-sm text-slate-500">
                             Room {{ $reservation->rooms->first()?->room?->room_number }}
                             @if ($reservation->folio)
-                                &middot; Balance ₦{{ number_format($reservation->folio->balance_cents / 100, 2) }}
+                                &middot; Balance
+                                <a href="{{ route('folios.show', $reservation->folio) }}" class="font-medium text-brand-600 hover:text-brand-500">
+                                    ₦{{ number_format($reservation->folio->balance_cents / 100, 2) }}
+                                </a>
                             @endif
                         </p>
                     </div>
@@ -122,13 +125,26 @@
                             <p class="text-sm text-slate-500">
                                 Room {{ $reservation->rooms->first()?->room?->room_number }} &middot; {{ $reservation->rooms->first()?->room?->roomType?->name }}
                                 &middot; until {{ $reservation->departure_date->format('M j, Y') }}
+                                @if ($reservation->folio)
+                                    &middot; Balance
+                                    <a href="{{ route('folios.show', $reservation->folio) }}" class="font-medium text-brand-600 hover:text-brand-500">
+                                        ₦{{ number_format($reservation->folio->balance_cents / 100, 2) }}
+                                    </a>
+                                @endif
                             </p>
                         </div>
-                        @can('update', $reservation)
-                            <button wire:click="startRoomChange({{ $reservation->id }})" class="rounded-md border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                                Change room
-                            </button>
-                        @endcan
+                        <div class="flex items-center gap-3">
+                            @if ($reservation->folio)
+                                <a href="{{ route('folios.show', $reservation->folio) }}" class="rounded-md border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                    View folio
+                                </a>
+                            @endif
+                            @can('update', $reservation)
+                                <button wire:click="startRoomChange({{ $reservation->id }})" class="rounded-md border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                    Change room
+                                </button>
+                            @endcan
+                        </div>
                     </div>
 
                     @if ($changingRoomReservationId === $reservation->id)

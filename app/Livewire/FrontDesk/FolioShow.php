@@ -134,7 +134,7 @@ class FolioShow extends Component
         $payment = Payment::findOrFail($paymentId);
         $this->authorize('refund', $payment);
 
-        $refundPayment->handle($payment, __('Refunded by :name via Front Desk', ['name' => auth()->user()->name]));
+        $refundPayment->handle($payment, __('Refunded by :name via Front Desk', ['name' => auth()->user()->name]), auth()->user());
 
         $this->folio->refresh();
     }

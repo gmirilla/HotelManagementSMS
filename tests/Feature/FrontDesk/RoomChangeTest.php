@@ -7,6 +7,7 @@ use App\Domain\FrontDesk\Actions\CheckInGuestAction;
 use App\Domain\Reservation\Enums\ReservationStatus;
 use App\Domain\Room\Enums\RoomStatus;
 use App\Livewire\FrontDesk\Dashboard;
+use App\Models\Account;
 use App\Models\Branch;
 use App\Models\Reservation;
 use App\Models\ReservationRoom;
@@ -24,6 +25,10 @@ use Spatie\Permission\Models\Role;
  */
 function makeUpcomingStay(Branch $branch, int $nights = 2, int $nightlyRateCents = 10000): array
 {
+    if (! Account::where('branch_id', $branch->id)->exists()) {
+        seedChartOfAccounts($branch);
+    }
+
     $roomType = RoomType::factory()->create(['branch_id' => $branch->id, 'base_rate_cents' => $nightlyRateCents]);
     $room = Room::factory()->create(['branch_id' => $branch->id, 'room_type_id' => $roomType->id, 'status' => RoomStatus::VacantClean]);
     $reservation = Reservation::factory()->create([

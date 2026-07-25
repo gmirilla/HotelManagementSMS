@@ -16,6 +16,7 @@ beforeEach(function (): void {
     $role->givePermissionTo(['folios.manage', 'payments.process']);
 
     $this->branch = Branch::factory()->create();
+    seedChartOfAccounts($this->branch);
     $this->user = User::factory()->create(['tenant_id' => $this->branch->tenant_id]);
     $this->user->assignRole($role);
     $this->branch->staff()->attach($this->user->id, ['role_id' => $role->id, 'is_primary' => true]);

@@ -20,6 +20,7 @@ beforeEach(function (): void {
     $role->givePermissionTo('reservations.manage');
 
     $this->branch = Branch::factory()->create();
+    seedChartOfAccounts($this->branch);
     $this->roomType = RoomType::factory()->create(['branch_id' => $this->branch->id, 'base_rate_cents' => 10000]);
     $this->room = Room::factory()->create(['branch_id' => $this->branch->id, 'room_type_id' => $this->roomType->id]);
 
