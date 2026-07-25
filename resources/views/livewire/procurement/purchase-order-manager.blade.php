@@ -60,7 +60,7 @@
                 <div class="flex items-start justify-between">
                     <div>
                         <p class="font-medium text-slate-800">{{ $po->po_number }} &middot; {{ $po->supplier->name }}</p>
-                        <p class="text-sm text-slate-500">${{ number_format($po->total_cents / 100, 2) }}</p>
+                        <p class="text-sm text-slate-500">₦{{ number_format($po->total_cents / 100, 2) }}</p>
                     </div>
                     <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ ucfirst(str_replace('_', ' ', $po->status->value)) }}</span>
                 </div>

@@ -96,7 +96,7 @@
                         <p class="text-sm text-slate-500">
                             Room {{ $reservation->rooms->first()?->room?->room_number }}
                             @if ($reservation->folio)
-                                &middot; Balance ${{ number_format($reservation->folio->balance_cents / 100, 2) }}
+                                &middot; Balance ₦{{ number_format($reservation->folio->balance_cents / 100, 2) }}
                             @endif
                         </p>
                     </div>

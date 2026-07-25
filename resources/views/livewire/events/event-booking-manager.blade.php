@@ -115,7 +115,7 @@
                             <select wire:model="selectedServiceId" class="mt-1 block w-full rounded-md border-slate-300 text-sm shadow-sm">
                                 <option value="">Select…</option>
                                 @foreach ($this->services as $service)
-                                    <option value="{{ $service->id }}">{{ $service->name }} (${{ number_format($service->unit_price_cents / 100, 2) }}/{{ str_replace('_', ' ', $service->unit) }})</option>
+                                    <option value="{{ $service->id }}">{{ $service->name }} (₦{{ number_format($service->unit_price_cents / 100, 2) }}/{{ str_replace('_', ' ', $service->unit) }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -137,17 +137,17 @@
                             <tbody class="divide-y divide-slate-100">
                                 <tr>
                                     <td class="px-4 py-2 text-slate-800">Venue rental ({{ $this->selectedBooking->durationHours() }}h)</td>
-                                    <td class="px-4 py-2 text-slate-600">${{ number_format($bill['venue_cents'] / 100, 2) }}</td>
+                                    <td class="px-4 py-2 text-slate-600">₦{{ number_format($bill['venue_cents'] / 100, 2) }}</td>
                                 </tr>
                                 @foreach ($bill['items'] as $row)
                                     <tr wire:key="bill-item-{{ $row['item']->id }}">
                                         <td class="px-4 py-2 text-slate-800">{{ $row['item']->eventService->name }} × {{ $row['item']->quantity }}</td>
-                                        <td class="px-4 py-2 text-slate-600">${{ number_format($row['line_total_cents'] / 100, 2) }}</td>
+                                        <td class="px-4 py-2 text-slate-600">₦{{ number_format($row['line_total_cents'] / 100, 2) }}</td>
                                     </tr>
                                 @endforeach
                                 <tr class="bg-slate-50 font-semibold">
                                     <td class="px-4 py-2 text-slate-800">Total</td>
-                                    <td class="px-4 py-2 text-slate-800">${{ number_format($bill['total_cents'] / 100, 2) }}</td>
+                                    <td class="px-4 py-2 text-slate-800">₦{{ number_format($bill['total_cents'] / 100, 2) }}</td>
                                 </tr>
                             </tbody>
                         </table>

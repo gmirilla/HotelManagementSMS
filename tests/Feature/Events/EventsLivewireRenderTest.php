@@ -65,6 +65,6 @@ test('event booking manager renders a selected booking\'s consolidated bill', fu
 
     // bill is render()-only view data (not a component property), so it
     // must be asserted via rendered output. 4h * 20000c venue + 4 * 5000c
-    // items = 100000c = $1,000.00 total.
-    $component->call('select', $booking->id)->assertOk()->assertSee('$1,000.00');
+    // items = 100000c = ₦1,000.00 total.
+    $component->call('select', $booking->id)->assertOk()->assertSee('₦1,000.00');
 });

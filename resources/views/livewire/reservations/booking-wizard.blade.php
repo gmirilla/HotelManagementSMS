@@ -58,7 +58,7 @@
                         <p class="text-sm text-slate-500">{{ $row['available'] }} available &middot; up to {{ $row['roomType']->base_capacity_adults }} adults</p>
                     </div>
                     <div class="text-right">
-                        <p class="font-semibold text-slate-800">${{ number_format($row['averageRateCents'] / 100, 2) }}/night avg</p>
+                        <p class="font-semibold text-slate-800">₦{{ number_format($row['averageRateCents'] / 100, 2) }}/night avg</p>
                         <button wire:click="selectRoomType({{ $row['roomType']->id }})" class="mt-1 text-sm font-medium text-brand-600 hover:text-brand-500">
                             Select &rarr;
                         </button>

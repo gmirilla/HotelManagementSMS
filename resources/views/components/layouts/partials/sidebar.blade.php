@@ -79,6 +79,7 @@
         @endif
         @if (auth()->user()->can('settings.manage'))
             <a href="{{ route('admin.hotel-settings') }}" @class(['rounded-md px-3 py-2 font-medium transition', 'bg-brand-50 text-brand-700' => request()->routeIs('admin.hotel-settings'), 'text-slate-600 hover:bg-brand-50 hover:text-brand-600' => ! request()->routeIs('admin.hotel-settings')])>Hotel Settings</a>
+            <a href="{{ route('admin.payment-settings') }}" @class(['rounded-md px-3 py-2 font-medium transition', 'bg-brand-50 text-brand-700' => request()->routeIs('admin.payment-settings'), 'text-slate-600 hover:bg-brand-50 hover:text-brand-600' => ! request()->routeIs('admin.payment-settings')])>Payment Settings</a>
             <a href="{{ route('admin.appearance') }}" @class(['rounded-md px-3 py-2 font-medium transition', 'bg-brand-50 text-brand-700' => request()->routeIs('admin.appearance'), 'text-slate-600 hover:bg-brand-50 hover:text-brand-600' => ! request()->routeIs('admin.appearance')])>Appearance</a>
         @endif
     @endif

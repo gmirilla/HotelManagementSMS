@@ -21,4 +21,18 @@ enum PaymentMethod: string
             self::Cash, self::PosTerminal, self::BankTransfer => false,
         };
     }
+
+    /**
+     * The methods a staff member can record synchronously at the front desk
+     * — gateway methods are excluded here for the same reason
+     * RecordFolioPaymentAction refuses them: they only ever become
+     * "completed" through a verified gateway confirmation, never by a human
+     * picking them from a dropdown.
+     *
+     * @return list<self>
+     */
+    public static function manual(): array
+    {
+        return array_values(array_filter(self::cases(), fn (self $method): bool => ! $method->isGateway()));
+    }
 }

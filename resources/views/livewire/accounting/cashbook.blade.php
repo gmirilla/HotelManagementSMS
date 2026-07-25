@@ -21,7 +21,7 @@
     <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
         <p class="text-xs uppercase text-slate-400">Running balance for {{ \Illuminate\Support\Carbon::parse($shiftDate)->format('M j, Y') }}</p>
         <p class="text-2xl font-semibold {{ $this->runningBalanceCents >= 0 ? 'text-emerald-600' : 'text-red-600' }}">
-            ${{ number_format($this->runningBalanceCents / 100, 2) }}
+            ₦{{ number_format($this->runningBalanceCents / 100, 2) }}
         </p>
     </div>
 

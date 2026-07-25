@@ -78,7 +78,7 @@
                         </td>
                         <td class="px-4 py-3 text-slate-500">{{ $item->sku }}</td>
                         <td class="px-4 py-3 text-slate-700">{{ $item->quantity_on_hand }} {{ $item->unit_of_measure }}</td>
-                        <td class="px-4 py-3 text-slate-500">${{ number_format($item->average_cost_cents / 100, 2) }}</td>
+                        <td class="px-4 py-3 text-slate-500">₦{{ number_format($item->average_cost_cents / 100, 2) }}</td>
                         <td class="px-4 py-3 text-right">
                             @can('update', $item)
                                 <div class="flex justify-end gap-2 text-xs font-medium">

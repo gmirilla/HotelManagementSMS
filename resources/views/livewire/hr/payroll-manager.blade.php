@@ -65,9 +65,9 @@
                             @foreach ($this->viewingRun->payslips as $payslip)
                                 <tr wire:key="payslip-{{ $payslip->id }}">
                                     <td class="px-4 py-2 text-slate-800">{{ $payslip->employee->fullName() }}</td>
-                                    <td class="px-4 py-2 text-slate-600">${{ number_format($payslip->gross_cents / 100, 2) }}</td>
-                                    <td class="px-4 py-2 text-red-600">-${{ number_format($payslip->deductions_cents / 100, 2) }}</td>
-                                    <td class="px-4 py-2 font-medium text-slate-800">${{ number_format($payslip->net_cents / 100, 2) }}</td>
+                                    <td class="px-4 py-2 text-slate-600">₦{{ number_format($payslip->gross_cents / 100, 2) }}</td>
+                                    <td class="px-4 py-2 text-red-600">-₦{{ number_format($payslip->deductions_cents / 100, 2) }}</td>
+                                    <td class="px-4 py-2 font-medium text-slate-800">₦{{ number_format($payslip->net_cents / 100, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

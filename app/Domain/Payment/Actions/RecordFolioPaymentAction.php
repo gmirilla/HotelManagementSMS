@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Payment\Actions;
 
 use App\Domain\FrontDesk\Support\FolioBalanceCalculator;
+use App\Domain\Payment\Enums\PaymentMethod;
 use App\Domain\Payment\Enums\PaymentStatus;
 use App\Models\Folio;
 use App\Models\Payment;
@@ -15,8 +16,11 @@ use Illuminate\Validation\ValidationException;
  * Records a payment against a folio for the non-gateway methods (cash, POS
  * terminal, bank transfer) that settle synchronously at the front desk.
  * Gateway payments (Stripe/PayPal/Flutterwave/Paystack) go through their own
- * webhook-driven confirmation flow — introduced alongside the Payments
- * module — and are not created via this action.
+ * webhook-driven confirmation flow (see InitiateGatewayPaymentAction /
+ * ConfirmGatewayPaymentAction) and are refused here on purpose — a staff
+ * member picking "Paystack" from a dropdown and getting an instantly
+ * Completed payment with no gateway ever contacted would be a fraud vector,
+ * not a shortcut.
  */
 class RecordFolioPaymentAction
 {
@@ -26,6 +30,10 @@ class RecordFolioPaymentAction
     {
         if ($amountCents <= 0) {
             throw ValidationException::withMessages(['amount' => __('Payment amount must be greater than zero.')]);
+        }
+
+        if (PaymentMethod::from($method)->isGateway()) {
+            throw ValidationException::withMessages(['method' => __('Gateway payment methods cannot be recorded manually.')]);
         }
 
         $payment = Payment::create([

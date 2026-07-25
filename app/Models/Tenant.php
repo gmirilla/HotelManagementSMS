@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Override;
 
-#[Fillable(['name', 'slug', 'default_currency', 'default_timezone', 'is_active', 'brand_color', 'logo_path'])]
+#[Fillable(['name', 'slug', 'default_currency', 'default_timezone', 'is_active', 'brand_color', 'logo_path', 'paystack_public_key', 'paystack_secret_key'])]
 class Tenant extends Model
 {
     /** @use HasFactory<TenantFactory> */
@@ -23,6 +23,7 @@ class Tenant extends Model
     {
         return [
             'is_active' => 'boolean',
+            'paystack_secret_key' => 'encrypted',
         ];
     }
 

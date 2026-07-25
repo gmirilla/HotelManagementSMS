@@ -11,6 +11,7 @@ use App\Livewire\Accounting\TaxRuleManager;
 use App\Livewire\Admin\AppearanceSettings;
 use App\Livewire\Admin\BranchManager;
 use App\Livewire\Admin\HotelSettings;
+use App\Livewire\Admin\PaymentSettings;
 use App\Livewire\Admin\UserManager;
 use App\Livewire\CRM\CorporateAccountManager;
 use App\Livewire\CRM\CouponManager;
@@ -96,5 +97,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/users', UserManager::class)->name('admin.users');
     Route::get('admin/appearance', AppearanceSettings::class)->name('admin.appearance');
     Route::get('admin/hotel-settings', HotelSettings::class)->name('admin.hotel-settings');
+    Route::get('admin/payment-settings', PaymentSettings::class)->name('admin.payment-settings');
     Route::get('admin/branches', BranchManager::class)->name('admin.branches');
 });

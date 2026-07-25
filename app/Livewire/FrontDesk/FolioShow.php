@@ -6,11 +6,17 @@ namespace App\Livewire\FrontDesk;
 
 use App\Domain\FrontDesk\Actions\PostFolioChargeAction;
 use App\Domain\FrontDesk\Enums\ChargeType;
+use App\Domain\Payment\Actions\ConfirmGatewayPaymentAction;
+use App\Domain\Payment\Actions\InitiateGatewayPaymentAction;
 use App\Domain\Payment\Actions\RecordFolioPaymentAction;
+use App\Domain\Payment\Actions\RefundGatewayPaymentAction;
 use App\Domain\Payment\Enums\PaymentMethod;
 use App\Models\Folio;
+use App\Models\Payment;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
@@ -33,10 +39,34 @@ class FolioShow extends Component
 
     public string $paymentAmount = '';
 
-    public function mount(Folio $folio): void
+    public string $payOnlineAmount = '';
+
+    /**
+     * Paystack appends this to the callback URL on redirect — see
+     * InitiateGatewayPaymentAction's $callbackUrl. Only ever used as a
+     * trigger to re-check with Paystack, never trusted on its own.
+     */
+    #[Url]
+    public ?string $reference = null;
+
+    public function mount(Folio $folio, ConfirmGatewayPaymentAction $confirmPayment): void
     {
         $this->authorize('view', $folio);
         $this->folio = $folio;
+        $this->payOnlineAmount = number_format($folio->balance_cents / 100, 2, '.', '');
+
+        if ($this->reference !== null) {
+            try {
+                $confirmPayment->handle($this->reference);
+                $this->folio->refresh();
+            } catch (ModelNotFoundException) {
+                // A stale or tampered reference — nothing to confirm, and
+                // the webhook (if this was ever a real transaction) will
+                // have already settled the actual Payment row regardless.
+            }
+
+            $this->reference = null;
+        }
     }
 
     public function addCharge(PostFolioChargeAction $postFolioCharge): void
@@ -83,13 +113,39 @@ class FolioShow extends Component
         $this->showPaymentForm = false;
     }
 
+    public function payWithPaystack(InitiateGatewayPaymentAction $initiatePayment): void
+    {
+        $this->authorize('processGatewayPayment', $this->folio);
+
+        $this->validate(['payOnlineAmount' => ['required', 'numeric', 'min:0.01']]);
+
+        $result = $initiatePayment->handle(
+            $this->folio,
+            (int) round(((float) $this->payOnlineAmount) * 100),
+            route('folios.show', $this->folio),
+            auth()->user(),
+        );
+
+        $this->redirect($result->authorizationUrl, navigate: false);
+    }
+
+    public function refundPayment(int $paymentId, RefundGatewayPaymentAction $refundPayment): void
+    {
+        $payment = Payment::findOrFail($paymentId);
+        $this->authorize('refund', $payment);
+
+        $refundPayment->handle($payment, __('Refunded by :name via Front Desk', ['name' => auth()->user()->name]));
+
+        $this->folio->refresh();
+    }
+
     public function render()
     {
         $this->folio->load(['guest', 'branch', 'charges' => fn ($q) => $q->orderByDesc('charge_date'), 'payments' => fn ($q) => $q->orderByDesc('created_at')]);
 
         return view('livewire.front-desk.folio-show', [
             'chargeTypes' => ChargeType::cases(),
-            'paymentMethods' => PaymentMethod::cases(),
+            'paymentMethods' => PaymentMethod::manual(),
         ]);
     }
 }

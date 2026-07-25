@@ -90,7 +90,7 @@
                         <h3 class="font-medium text-slate-800">{{ $roomType->name }}</h3>
                         <p class="text-sm text-slate-500">{{ $roomType->rooms_count }} room(s)</p>
                     </div>
-                    <span class="text-sm font-semibold text-slate-800">${{ number_format($roomType->base_rate_cents / 100, 2) }}/night</span>
+                    <span class="text-sm font-semibold text-slate-800">₦{{ number_format($roomType->base_rate_cents / 100, 2) }}/night</span>
                 </div>
 
                 <p class="mt-2 text-sm text-slate-600">{{ $roomType->description }}</p>

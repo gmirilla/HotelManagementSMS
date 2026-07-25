@@ -113,7 +113,7 @@ class HotelDemoSeeder extends Seeder
         $tenant = Tenant::factory()->create([
             'name' => 'Aurora Hotels',
             'slug' => 'aurora-hotels',
-            'default_currency' => 'USD',
+            'default_currency' => 'NGN',
         ]);
 
         $branches = collect([
@@ -125,6 +125,11 @@ class HotelDemoSeeder extends Seeder
             'code' => Str::upper(Str::substr($attrs['city'], 0, 3)) . '-01',
             'city' => $attrs['city'],
             'country' => 'United States',
+            // NGN, not the factory's USD default: the app's target market is
+            // Nigeria (Paystack is the payment gateway) — this keeps the
+            // seeded amount actually payable through it. City/country names
+            // are untouched; a full demo-data rebrand is a separate decision.
+            'currency' => 'NGN',
         ]));
 
         $amenities = collect(['Free Wi-Fi', 'Air Conditioning', 'Mini Bar', 'City View', 'Balcony', 'Room Service', 'Flat-Screen TV', 'Safe'])

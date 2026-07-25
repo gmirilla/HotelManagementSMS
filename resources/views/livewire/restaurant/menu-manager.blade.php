@@ -98,7 +98,7 @@
                                 <div class="flex items-center justify-between py-1.5">
                                     <span class="{{ $item->is_available ? 'text-slate-700' : 'text-slate-400 line-through' }}">{{ $item->name }}</span>
                                     <div class="flex items-center gap-3">
-                                        <span class="text-slate-500">${{ number_format($item->price_cents / 100, 2) }}</span>
+                                        <span class="text-slate-500">₦{{ number_format($item->price_cents / 100, 2) }}</span>
                                         @can('restaurant.manage')
                                             <button wire:click="toggleAvailability({{ $item->id }})" class="text-xs text-brand-600 hover:text-brand-500">
                                                 {{ $item->is_available ? 'Disable' : 'Enable' }}

@@ -44,5 +44,10 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip()));
 
         RateLimiter::for('api-auth', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
+
+        // Generous relative to the other limiters: Paystack retries webhook
+        // delivery on anything but a 2xx response, and this endpoint has no
+        // per-user identity to key on — only the calling IP.
+        RateLimiter::for('webhooks', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
     }
 }

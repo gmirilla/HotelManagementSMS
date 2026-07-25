@@ -54,7 +54,7 @@
                         @foreach ($items as $item)
                             <button wire:click="addItem({{ $item->id }})" class="rounded-md border border-slate-200 p-2 text-left text-sm hover:border-brand-300">
                                 <span class="block font-medium text-slate-700">{{ $item->name }}</span>
-                                <span class="text-slate-500">${{ number_format($item->price_cents / 100, 2) }}</span>
+                                <span class="text-slate-500">₦{{ number_format($item->price_cents / 100, 2) }}</span>
                             </button>
                         @endforeach
                     </div>
@@ -71,7 +71,7 @@
                     @forelse ($order->items as $item)
                         <div class="flex justify-between py-1.5">
                             <span>{{ $item->quantity }}&times; {{ $item->menuItem->name }}</span>
-                            <span>${{ number_format($item->lineTotalCents() / 100, 2) }}</span>
+                            <span>₦{{ number_format($item->lineTotalCents() / 100, 2) }}</span>
                         </div>
                     @empty
                         <p class="py-2 text-slate-500">No items yet.</p>
@@ -79,8 +79,8 @@
                 </div>
 
                 <div class="border-t border-slate-100 pt-2 text-sm">
-                    <div class="flex justify-between text-slate-500"><span>Tax</span><span>${{ number_format($order->tax_cents / 100, 2) }}</span></div>
-                    <div class="flex justify-between font-semibold text-slate-800"><span>Total</span><span>${{ number_format($order->total_cents / 100, 2) }}</span></div>
+                    <div class="flex justify-between text-slate-500"><span>Tax</span><span>₦{{ number_format($order->tax_cents / 100, 2) }}</span></div>
+                    <div class="flex justify-between font-semibold text-slate-800"><span>Total</span><span>₦{{ number_format($order->total_cents / 100, 2) }}</span></div>
                 </div>
 
                 <div class="mt-4 flex flex-col gap-2">

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\ReservationController;
 use App\Http\Controllers\Api\V1\RoomTypeController;
+use App\Http\Controllers\PaystackWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // FR-API-004: general API traffic is throttled per-token/IP; auth endpoints
@@ -17,6 +18,13 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['throttle:api-auth'])->prefix('auth')->group(function (): void {
     Route::post('login', [AuthController::class, 'login']);
 });
+
+// Deliberately outside auth:sanctum — Paystack's servers call this with no
+// session or token of any kind. This file sits outside the `web` middleware
+// group entirely, so it's naturally CSRF-free with no bootstrap/app.php
+// changes needed. See PaystackWebhookController for how it authenticates
+// the request instead (per-tenant signature verification).
+Route::middleware('throttle:webhooks')->post('webhooks/paystack', PaystackWebhookController::class)->name('webhooks.paystack');
 
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function (): void {
     Route::prefix('auth')->group(function (): void {

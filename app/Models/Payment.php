@@ -17,7 +17,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 #[Fillable([
     'branch_id', 'folio_id', 'method', 'amount_cents', 'currency', 'status',
-    'gateway_reference', 'received_by_user_id', 'refund_reason',
+    'gateway_reference', 'received_by_user_id', 'refund_reason', 'paid_at',
 ])]
 class Payment extends Model
 {
@@ -31,6 +31,7 @@ class Payment extends Model
             'method' => PaymentMethod::class,
             'amount_cents' => 'integer',
             'status' => PaymentStatus::class,
+            'paid_at' => 'datetime',
         ];
     }
 

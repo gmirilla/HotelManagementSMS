@@ -91,7 +91,7 @@
                         <tr wire:key="space-{{ $space->id }}">
                             <td class="px-4 py-2 text-slate-800">{{ $space->name }}</td>
                             <td class="px-4 py-2 text-slate-600">{{ $space->capacity }}</td>
-                            <td class="px-4 py-2 text-slate-600">${{ number_format($space->hourly_rate_cents / 100, 2) }}</td>
+                            <td class="px-4 py-2 text-slate-600">₦{{ number_format($space->hourly_rate_cents / 100, 2) }}</td>
                             <td class="px-4 py-2 text-right">
                                 @can('events.manage')
                                     <button wire:click="toggleSpaceActive({{ $space->id }})" class="text-xs {{ $space->is_active ? 'text-emerald-600' : 'text-slate-400' }}">
@@ -119,7 +119,7 @@
                         <tr wire:key="service-{{ $service->id }}">
                             <td class="px-4 py-2 text-slate-800">{{ $service->name }}</td>
                             <td class="px-4 py-2 text-slate-600">{{ ucfirst($service->category->value) }}</td>
-                            <td class="px-4 py-2 text-slate-600">${{ number_format($service->unit_price_cents / 100, 2) }} / {{ str_replace('_', ' ', $service->unit) }}</td>
+                            <td class="px-4 py-2 text-slate-600">₦{{ number_format($service->unit_price_cents / 100, 2) }} / {{ str_replace('_', ' ', $service->unit) }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="3" class="px-4 py-6 text-center text-slate-500">No services yet.</td></tr>

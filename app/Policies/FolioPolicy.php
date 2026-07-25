@@ -37,4 +37,16 @@ class FolioPolicy
     {
         return $user->canAccessBranch($folio->branch_id) && $user->hasPermissionTo('folios.void');
     }
+
+    /**
+     * Starting a gateway checkout reuses the same permission the manual
+     * payment form already requires (payments.process — see
+     * StorePaymentRequest::authorize() for the identical branch+permission
+     * pairing this mirrors), always paired with branch scoping rather than
+     * checked bare.
+     */
+    public function processGatewayPayment(User $user, Folio $folio): bool
+    {
+        return $user->canAccessBranch($folio->branch_id) && $user->hasPermissionTo('payments.process');
+    }
 }

@@ -32,7 +32,7 @@
                             </p>
                         </div>
                         <div class="text-right">
-                            <p class="font-semibold text-slate-800">${{ number_format($ar->outstandingCents() / 100, 2) }}</p>
+                            <p class="font-semibold text-slate-800">₦{{ number_format($ar->outstandingCents() / 100, 2) }}</p>
                             <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ ucfirst(str_replace('_', ' ', $ar->status->value)) }}</span>
                         </div>
                     </div>
@@ -74,7 +74,7 @@
                             </p>
                         </div>
                         <div class="text-right">
-                            <p class="font-semibold text-slate-800">${{ number_format($ap->outstandingCents() / 100, 2) }}</p>
+                            <p class="font-semibold text-slate-800">₦{{ number_format($ap->outstandingCents() / 100, 2) }}</p>
                             <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ ucfirst(str_replace('_', ' ', $ap->status->value)) }}</span>
                         </div>
                     </div>

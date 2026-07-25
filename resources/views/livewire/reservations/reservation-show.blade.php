@@ -31,7 +31,7 @@
         @foreach ($reservation->rooms as $reservationRoom)
             <div class="flex items-center justify-between text-sm">
                 <span>{{ $reservationRoom->roomType->name }} @if($reservationRoom->room) &mdash; Room {{ $reservationRoom->room->room_number }} @endif</span>
-                <span class="text-slate-500">${{ number_format($reservationRoom->rate_cents / 100, 2) }}/night</span>
+                <span class="text-slate-500">₦{{ number_format($reservationRoom->rate_cents / 100, 2) }}/night</span>
             </div>
         @endforeach
     </div>
@@ -44,7 +44,7 @@
                     View folio &rarr;
                 </a>
             </div>
-            <p class="text-sm text-slate-600">Balance: <span class="font-semibold">${{ number_format($reservation->folio->balance_cents / 100, 2) }}</span></p>
+            <p class="text-sm text-slate-600">Balance: <span class="font-semibold">₦{{ number_format($reservation->folio->balance_cents / 100, 2) }}</span></p>
         </div>
     @endif
 

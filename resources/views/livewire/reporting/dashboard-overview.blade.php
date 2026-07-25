@@ -25,8 +25,8 @@
             <x-stat-tile label="Departures today" :value="$this->departuresToday" />
             <x-stat-tile label="Pending housekeeping" :value="$this->pendingHousekeepingCount" />
             <x-stat-tile label="Open maintenance" :value="$this->openMaintenanceCount" />
-            <x-stat-tile label="Restaurant sales today" :value="'$' . number_format($this->restaurantSalesTodayCents / 100, 2)" />
-            <x-stat-tile label="Outstanding invoices" :value="'$' . number_format($this->outstandingInvoicesCents / 100, 2)" />
+            <x-stat-tile label="Restaurant sales today" :value="'₦' . number_format($this->restaurantSalesTodayCents / 100, 2)" />
+            <x-stat-tile label="Outstanding invoices" :value="'₦' . number_format($this->outstandingInvoicesCents / 100, 2)" />
         </div>
 
         <div class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-5">
@@ -308,6 +308,11 @@
                 <a href="{{ route('admin.hotel-settings') }}" class="group relative flex flex-col rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-900/5">
                     <h2 class="font-medium text-slate-800 group-hover:text-brand-700">Hotel Settings</h2>
                     <p class="mt-1 text-sm text-slate-500">Hotel name, logo, default currency, and timezone.</p>
+                    <span class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 opacity-0 transition group-hover:opacity-100">Open <span aria-hidden="true">&rarr;</span></span>
+                </a>
+                <a href="{{ route('admin.payment-settings') }}" class="group relative flex flex-col rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-900/5">
+                    <h2 class="font-medium text-slate-800 group-hover:text-brand-700">Payment Settings</h2>
+                    <p class="mt-1 text-sm text-slate-500">Connect your Paystack account to accept payments online.</p>
                     <span class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 opacity-0 transition group-hover:opacity-100">Open <span aria-hidden="true">&rarr;</span></span>
                 </a>
                 <a href="{{ route('admin.appearance') }}" class="group relative flex flex-col rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-900/5">

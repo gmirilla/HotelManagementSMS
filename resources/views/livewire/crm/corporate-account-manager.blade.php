@@ -75,7 +75,7 @@
                             @if ($account->account_type->value === 'travel_agent')
                                 {{ $account->commission_percent }}% commission
                             @elseif ($account->negotiated_rate_cents)
-                                ${{ number_format($account->negotiated_rate_cents / 100, 2) }}/night
+                                ₦{{ number_format($account->negotiated_rate_cents / 100, 2) }}/night
                             @else
                                 —
                             @endif
