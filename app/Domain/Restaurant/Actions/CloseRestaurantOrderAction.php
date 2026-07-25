@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Restaurant\Actions;
 
+use App\Domain\Accounting\Support\RestaurantLedgerPoster;
 use App\Domain\FrontDesk\Actions\PostFolioChargeAction;
 use App\Domain\Inventory\Actions\IssueStockAction;
 use App\Domain\Restaurant\Enums\OrderStatus;
@@ -20,13 +21,16 @@ use Illuminate\Validation\ValidationException;
  * not when the kitchen marks an item "served" — since a served-but-later-voided
  * item shouldn't have already decremented stock. For room-service orders tied
  * to a guest with an open folio, the total is posted there instead of settled
- * at the outlet (FR-POS-005).
+ * at the outlet (FR-POS-005); every other order (dine-in, takeaway) has
+ * nowhere else to settle, so it posts as a direct cash sale instead (FR-ACC-002
+ * — every revenue-affecting transaction generates a journal entry, folio or not).
  */
 class CloseRestaurantOrderAction
 {
     public function __construct(
         private readonly IssueStockAction $issueStock,
         private readonly PostFolioChargeAction $postFolioCharge,
+        private readonly RestaurantLedgerPoster $restaurantLedger,
     ) {}
 
     public function handle(RestaurantOrder $order, User $staff): RestaurantOrder
@@ -53,6 +57,8 @@ class CloseRestaurantOrderAction
                     $staff,
                 );
                 $order->update(['folio_id' => $folio->id]);
+            } else {
+                $this->restaurantLedger->postDirectSale($order, $staff);
             }
 
             $order->update(['status' => OrderStatus::Closed]);

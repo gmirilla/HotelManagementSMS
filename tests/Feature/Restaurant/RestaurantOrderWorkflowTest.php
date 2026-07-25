@@ -15,6 +15,7 @@ use App\Models\Branch;
 use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\InventoryItem;
+use App\Models\JournalEntry;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use App\Models\MenuItemIngredient;
@@ -104,6 +105,7 @@ test('marking every item served moves a sent order to served', function (): void
 
 test('closing an order deducts ingredients from inventory', function (): void {
     $branch = Branch::factory()->create();
+    seedChartOfAccounts($branch);
     [$outlet, $menuItem, $ingredient] = makeMenuItemWithIngredient($branch, ingredientQtyPerServing: 0.25);
     $staff = User::factory()->create();
 
@@ -120,6 +122,7 @@ test('closing an order deducts ingredients from inventory', function (): void {
 
 test('closing a dine-in order frees its table', function (): void {
     $branch = Branch::factory()->create();
+    seedChartOfAccounts($branch);
     [$outlet, $menuItem] = makeMenuItemWithIngredient($branch);
     $table = RestaurantTable::factory()->create(['outlet_id' => $outlet->id, 'status' => TableStatus::Free]);
     $staff = User::factory()->create();
@@ -131,6 +134,25 @@ test('closing a dine-in order frees its table', function (): void {
     app(CloseRestaurantOrderAction::class)->handle($order, $staff);
 
     expect($table->fresh()->status)->toBe(TableStatus::Free);
+});
+
+test('closing a walk-in order with no folio posts a direct cash sale to the ledger', function (): void {
+    $branch = Branch::factory()->create();
+    seedChartOfAccounts($branch);
+    [$outlet, $menuItem] = makeMenuItemWithIngredient($branch);
+    $staff = User::factory()->create();
+
+    $order = app(CreateRestaurantOrderAction::class)->handle($branch->id, $outlet->id, $staff, OrderType::Takeaway);
+    app(AddOrderItemAction::class)->handle($order, $menuItem, 1);
+    $order->refresh();
+
+    app(CloseRestaurantOrderAction::class)->handle($order, $staff);
+
+    expect($order->fresh()->folio_id)->toBeNull();
+
+    $ledgerEntry = JournalEntry::where('reference_type', $order->getMorphClass())->where('reference_id', $order->id)->firstOrFail();
+    expect($ledgerEntry->isBalanced())->toBeTrue()
+        ->and($ledgerEntry->totalDebitCents())->toBe($order->fresh()->total_cents);
 });
 
 test('closing a room-service order posts the total to the guest open folio', function (): void {

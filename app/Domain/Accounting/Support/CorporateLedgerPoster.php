@@ -11,20 +11,25 @@ use App\Models\ArEntry;
 use App\Models\User;
 
 /**
- * The bridge between corporate receivable/payable payments and the general
+ * The bridge between corporate receivable/payable events and the general
  * ledger — the counterpart to FolioLedgerPoster for the corporate-account
  * and supplier side of Accounting rather than guest folios. An AR payment
  * is money coming in against a corporate account's balance (Dr Cash / Cr
  * Accounts Receivable); an AP payment is money going out to a supplier
- * (Dr Accounts Payable / Cr Cash). Unlike folios, corporate AR/AP entries
- * don't post a charge-side entry themselves — they're created directly at
- * the invoiced/billed amount — so only the payment side needs wiring here.
+ * (Dr Accounts Payable / Cr Cash). There's no operational action anywhere
+ * that creates an ArEntry (corporate billing isn't wired up yet), so only
+ * the AR payment side is posted here; on the AP side, receiving goods
+ * against a purchase order (ReceiveGoodsAction) *does* create the ApEntry
+ * itself, at the point the liability and the inventory asset it bought
+ * both come into existence (Dr Inventory / Cr Accounts Payable).
  */
 class CorporateLedgerPoster
 {
     private const string CASH = '1000';
 
     private const string ACCOUNTS_RECEIVABLE = '1100';
+
+    private const string INVENTORY = '1200';
 
     private const string ACCOUNTS_PAYABLE = '2000';
 
@@ -64,6 +69,24 @@ class CorporateLedgerPoster
                 ['account_id' => $cashAccount->id, 'side' => JournalSide::Credit, 'amount_cents' => $amountCents],
             ],
             memo: 'Supplier payable payment made',
+            createdBy: $staff,
+            reference: $entry,
+        );
+    }
+
+    public function postGoodsReceiptLiability(ApEntry $entry, ?User $staff): void
+    {
+        $inventoryAccount = $this->accounts->resolve($entry->branch_id, self::INVENTORY);
+        $payableAccount = $this->accounts->resolve($entry->branch_id, self::ACCOUNTS_PAYABLE);
+
+        $this->postJournalEntry->handle(
+            branchId: $entry->branch_id,
+            entryDate: now(),
+            lines: [
+                ['account_id' => $inventoryAccount->id, 'side' => JournalSide::Debit, 'amount_cents' => $entry->amount_cents],
+                ['account_id' => $payableAccount->id, 'side' => JournalSide::Credit, 'amount_cents' => $entry->amount_cents],
+            ],
+            memo: 'Goods received from supplier',
             createdBy: $staff,
             reference: $entry,
         );

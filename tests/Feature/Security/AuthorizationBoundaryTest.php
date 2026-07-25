@@ -32,12 +32,24 @@ declare(strict_types=1);
  *    method argument (not a bound property, but equally client-supplied)
  *    without a branch check — payroll-relevant attendance could be
  *    recorded for another branch's employee.
+ * 9. ItemManager::save()/PurchaseOrderManager::save() — the methods that
+ *    actually persist a new InventoryItem/PurchaseOrder — had no
+ *    authorization check of their own; both relied on a separate create()
+ *    method (which does authorize) having been called first to open the
+ *    form, but Livewire methods are independently callable over the wire.
+ * 10. PosTerminal::startTableOrder() trusted a client-supplied tableId
+ *     without checking it belonged to the selected outlet, and
+ *     selectedOutletId itself (a public property) was never validated
+ *     against the user's branch — either could be tampered with to open
+ *     an order against, or view the menu/tables of, a different branch's
+ *     outlet.
  */
 
 use App\Domain\Accounting\Enums\ApStatus;
 use App\Domain\Accounting\Enums\ArStatus;
 use App\Domain\Event\Enums\EventBookingStatus;
 use App\Domain\HR\Actions\SubmitLeaveRequestAction;
+use App\Domain\Restaurant\Enums\TableStatus;
 use App\Livewire\Accounting\ArApManager;
 use App\Livewire\CRM\CorporateAccountManager;
 use App\Livewire\CRM\FeedbackManager;
@@ -46,7 +58,10 @@ use App\Livewire\HR\AttendanceBoard;
 use App\Livewire\HR\DisciplinaryRecordManager;
 use App\Livewire\HR\LeaveManager;
 use App\Livewire\HR\PerformanceReviewManager;
+use App\Livewire\Inventory\ItemManager;
+use App\Livewire\Procurement\PurchaseOrderManager;
 use App\Livewire\Reservations\BookingWizard;
+use App\Livewire\Restaurant\PosTerminal;
 use App\Models\ApEntry;
 use App\Models\ArEntry;
 use App\Models\Branch;
@@ -58,12 +73,19 @@ use App\Models\EventService;
 use App\Models\EventSpace;
 use App\Models\Guest;
 use App\Models\GuestFeedback;
+use App\Models\InventoryItem;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\PerformanceReview;
+use App\Models\PurchaseOrder;
+use App\Models\RestaurantOrder;
+use App\Models\RestaurantOutlet;
+use App\Models\RestaurantTable;
 use App\Models\RoomType;
+use App\Models\Supplier;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Models\Warehouse;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -390,4 +412,97 @@ test('an hr.manage holder cannot clock in or record attendance for an employee o
         ->assertForbidden();
 
     expect($otherBranchEmployee->attendanceRecords()->count())->toBe(0);
+});
+
+test('a user without inventory.manage cannot create an inventory item by calling save directly', function (): void {
+    Permission::firstOrCreate(['name' => 'inventory.manage', 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => 'inventory.view', 'guard_name' => 'web']);
+    $role = Role::firstOrCreate(['name' => 'Boundary Inventory Viewer', 'guard_name' => 'web']);
+    $role->givePermissionTo('inventory.view');
+
+    $branch = Branch::factory()->create();
+    $user = User::factory()->create(['tenant_id' => $branch->tenant_id, 'current_branch_id' => $branch->id]);
+    $user->assignRole($role);
+    $branch->staff()->attach($user->id, ['role_id' => $role->id, 'is_primary' => true]);
+
+    Livewire::actingAs($user)
+        ->test(ItemManager::class)
+        ->set('name', 'Forged Item')
+        ->set('sku', 'FORGE-01')
+        ->set('unitOfMeasure', 'unit')
+        ->set('reorderPoint', '5')
+        ->call('save')
+        ->assertForbidden();
+
+    expect(InventoryItem::where('sku', 'FORGE-01')->exists())->toBeFalse();
+});
+
+test('a user without procurement.manage cannot create a purchase order by calling save directly', function (): void {
+    Permission::firstOrCreate(['name' => 'procurement.manage', 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => 'inventory.view', 'guard_name' => 'web']);
+    $role = Role::firstOrCreate(['name' => 'Boundary Procurement Viewer', 'guard_name' => 'web']);
+    $role->givePermissionTo('inventory.view');
+
+    $branch = Branch::factory()->create();
+    $warehouse = Warehouse::factory()->create(['branch_id' => $branch->id]);
+    $item = InventoryItem::factory()->create(['warehouse_id' => $warehouse->id]);
+    $supplier = Supplier::factory()->create(['tenant_id' => $branch->tenant_id]);
+    $user = User::factory()->create(['tenant_id' => $branch->tenant_id, 'current_branch_id' => $branch->id]);
+    $user->assignRole($role);
+    $branch->staff()->attach($user->id, ['role_id' => $role->id, 'is_primary' => true]);
+
+    Livewire::actingAs($user)
+        ->test(PurchaseOrderManager::class)
+        ->set('supplierId', $supplier->id)
+        ->set('lines', [['inventory_item_id' => (string) $item->id, 'quantity' => '5', 'unit_cost' => '1.00']])
+        ->call('save')
+        ->assertForbidden();
+
+    expect(PurchaseOrder::where('supplier_id', $supplier->id)->exists())->toBeFalse();
+});
+
+test('the POS refuses a table order request for a table outside the selected outlet', function (): void {
+    Permission::firstOrCreate(['name' => 'restaurant.orders.create', 'guard_name' => 'web']);
+    $role = Role::firstOrCreate(['name' => 'Boundary POS Server', 'guard_name' => 'web']);
+    $role->givePermissionTo('restaurant.orders.create');
+
+    $ownBranch = Branch::factory()->create();
+    $otherBranch = Branch::factory()->create(['tenant_id' => $ownBranch->tenant_id]);
+
+    RestaurantOutlet::factory()->create(['branch_id' => $ownBranch->id]);
+    $otherOutlet = RestaurantOutlet::factory()->create(['branch_id' => $otherBranch->id]);
+    $otherTable = RestaurantTable::factory()->create(['outlet_id' => $otherOutlet->id, 'status' => TableStatus::Free]);
+
+    $user = User::factory()->create(['tenant_id' => $ownBranch->tenant_id, 'current_branch_id' => $ownBranch->id]);
+    $user->assignRole($role);
+    $ownBranch->staff()->attach($user->id, ['role_id' => $role->id, 'is_primary' => true]);
+
+    Livewire::actingAs($user)
+        ->test(PosTerminal::class)
+        ->call('startTableOrder', $otherTable->id)
+        ->assertForbidden();
+
+    expect(RestaurantOrder::where('table_id', $otherTable->id)->exists())->toBeFalse()
+        ->and($otherTable->fresh()->status)->toBe(TableStatus::Free);
+});
+
+test('the POS refuses to select an outlet from a different branch', function (): void {
+    Permission::firstOrCreate(['name' => 'restaurant.orders.create', 'guard_name' => 'web']);
+    $role = Role::firstOrCreate(['name' => 'Boundary POS Server 2', 'guard_name' => 'web']);
+    $role->givePermissionTo('restaurant.orders.create');
+
+    $ownBranch = Branch::factory()->create();
+    $otherBranch = Branch::factory()->create(['tenant_id' => $ownBranch->tenant_id]);
+
+    RestaurantOutlet::factory()->create(['branch_id' => $ownBranch->id]);
+    $otherOutlet = RestaurantOutlet::factory()->create(['branch_id' => $otherBranch->id]);
+
+    $user = User::factory()->create(['tenant_id' => $ownBranch->tenant_id, 'current_branch_id' => $ownBranch->id]);
+    $user->assignRole($role);
+    $ownBranch->staff()->attach($user->id, ['role_id' => $role->id, 'is_primary' => true]);
+
+    Livewire::actingAs($user)
+        ->test(PosTerminal::class)
+        ->set('selectedOutletId', $otherOutlet->id)
+        ->assertForbidden();
 });

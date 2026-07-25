@@ -79,6 +79,8 @@ class PurchaseOrderManager extends Component
 
     public function save(CreatePurchaseOrderAction $createPurchaseOrder): void
     {
+        $this->authorize('create', PurchaseOrder::class);
+
         $this->validate([
             'supplierId' => ['required', 'integer', 'exists:suppliers,id'],
             'lines' => ['required', 'array', 'min:1'],

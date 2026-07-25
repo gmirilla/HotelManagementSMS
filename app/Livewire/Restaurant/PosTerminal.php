@@ -39,6 +39,11 @@ class PosTerminal extends Component
         $this->selectedOutletId = $this->outlets->first()?->id;
     }
 
+    public function updatedSelectedOutletId(): void
+    {
+        abort_unless($this->outlets->contains('id', $this->selectedOutletId), 403);
+    }
+
     #[Computed]
     public function outlets(): Collection
     {
@@ -94,6 +99,8 @@ class PosTerminal extends Component
         $this->authorize('create', RestaurantOrder::class);
 
         $table = RestaurantTable::findOrFail($tableId);
+        abort_unless($table->outlet_id === $this->selectedOutletId, 403);
+
         $order = $createOrder->handle($this->branchId, $this->selectedOutletId, auth()->user(), OrderType::DineIn, $table);
 
         $this->activeOrderId = $order->id;

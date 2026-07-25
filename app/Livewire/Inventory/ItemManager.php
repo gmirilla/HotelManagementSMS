@@ -80,6 +80,8 @@ class ItemManager extends Component
 
     public function save(): void
     {
+        $this->authorize('create', InventoryItem::class);
+
         $this->validate();
 
         InventoryItem::create([

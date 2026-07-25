@@ -90,18 +90,20 @@ function browserTest(Closure $interaction): void
 | Chart of Accounts fixture (FR-ACC-002)
 |--------------------------------------------------------------------------
 |
-| FolioLedgerPoster/CorporateLedgerPoster (app/Domain/Accounting/Support/)
-| resolve accounts by branch + code and throw a clear error if one is
-| missing, on purpose — a bare Branch::factory()->create() has no chart of
-| accounts at all, so any test that checks in a guest, posts a folio
-| charge, records a folio/AR/AP payment needs this first. Codes match
-| HotelDemoSeeder::seedAccounting() exactly.
+| FolioLedgerPoster/CorporateLedgerPoster/RestaurantLedgerPoster
+| (app/Domain/Accounting/Support/) resolve accounts by branch + code and
+| throw a clear error if one is missing, on purpose — a bare
+| Branch::factory()->create() has no chart of accounts at all, so any test
+| that checks in a guest, posts a folio charge, records a folio/AR/AP
+| payment, receives goods against a PO, or closes a restaurant order needs
+| this first. Codes match HotelDemoSeeder::seedAccounting() exactly.
 */
 function seedChartOfAccounts(Branch $branch): void
 {
     foreach ([
         ['code' => '1000', 'name' => 'Cash', 'account_type' => AccountType::Asset],
         ['code' => '1100', 'name' => 'Accounts Receivable', 'account_type' => AccountType::Asset],
+        ['code' => '1200', 'name' => 'Inventory', 'account_type' => AccountType::Asset],
         ['code' => '2000', 'name' => 'Accounts Payable', 'account_type' => AccountType::Liability],
         ['code' => '2100', 'name' => 'Taxes Payable', 'account_type' => AccountType::Liability],
         ['code' => '4000', 'name' => 'Room Revenue', 'account_type' => AccountType::Revenue],
