@@ -8,6 +8,7 @@ use App\Domain\Restaurant\Actions\AddOrderItemAction;
 use App\Domain\Restaurant\Actions\CloseRestaurantOrderAction;
 use App\Domain\Restaurant\Actions\CreateRestaurantOrderAction;
 use App\Domain\Restaurant\Actions\SendOrderToKitchenAction;
+use App\Domain\Restaurant\Actions\VoidRestaurantOrderAction;
 use App\Domain\Restaurant\Enums\OrderType;
 use App\Livewire\Concerns\InteractsWithActiveBranch;
 use App\Models\Guest;
@@ -33,6 +34,10 @@ class PosTerminal extends Component
     public ?int $activeOrderId = null;
 
     public string $guestSearch = '';
+
+    public bool $showVoidForm = false;
+
+    public string $voidReason = '';
 
     public function mount(): void
     {
@@ -143,6 +148,19 @@ class PosTerminal extends Component
         $closeOrder->handle($order, auth()->user());
 
         $this->activeOrderId = null;
+        unset($this->tables, $this->activeOrder);
+    }
+
+    public function voidOrder(VoidRestaurantOrderAction $voidOrder): void
+    {
+        $order = RestaurantOrder::findOrFail($this->activeOrderId);
+        $this->authorize('void', $order);
+
+        $voidOrder->handle($order, $this->voidReason);
+
+        $this->activeOrderId = null;
+        $this->showVoidForm = false;
+        $this->voidReason = '';
         unset($this->tables, $this->activeOrder);
     }
 

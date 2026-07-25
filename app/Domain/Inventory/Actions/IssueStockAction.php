@@ -10,6 +10,7 @@ use App\Models\InventoryItem;
 use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class IssueStockAction
@@ -27,17 +28,35 @@ class IssueStockAction
             throw ValidationException::withMessages(['quantity' => __('Issued quantity must be greater than zero.')]);
         }
 
-        $movement = $item->stockMovements()->create([
-            'movement_type' => $movementType,
-            'quantity' => -$quantity,
-            'unit_cost_cents' => $item->average_cost_cents,
-            'reference_type' => $reference?->getMorphClass(),
-            'reference_id' => $reference?->getKey(),
-            'recorded_by_user_id' => $recordedBy?->id,
-        ]);
+        return DB::transaction(function () use ($item, $quantity, $recordedBy, $reference, $movementType) {
+            // Locked so two concurrent issues against the same item can't
+            // both read a quantity_on_hand that's stale by the time either
+            // commits, and both squeak past the availability check below.
+            $lockedItem = InventoryItem::whereKey($item->id)->lockForUpdate()->firstOrFail();
 
-        $this->quantityCalculator->recalculate($item);
+            if ($lockedItem->quantity_on_hand < $quantity) {
+                throw ValidationException::withMessages([
+                    'quantity' => __('Only :available :unit of :item on hand — cannot issue :requested.', [
+                        'available' => $lockedItem->quantity_on_hand,
+                        'unit' => $lockedItem->unit_of_measure,
+                        'item' => $lockedItem->name,
+                        'requested' => $quantity,
+                    ]),
+                ]);
+            }
 
-        return $movement;
+            $movement = $lockedItem->stockMovements()->create([
+                'movement_type' => $movementType,
+                'quantity' => -$quantity,
+                'unit_cost_cents' => $lockedItem->average_cost_cents,
+                'reference_type' => $reference?->getMorphClass(),
+                'reference_id' => $reference?->getKey(),
+                'recorded_by_user_id' => $recordedBy?->id,
+            ]);
+
+            $this->quantityCalculator->recalculate($lockedItem);
+
+            return $movement;
+        });
     }
 }

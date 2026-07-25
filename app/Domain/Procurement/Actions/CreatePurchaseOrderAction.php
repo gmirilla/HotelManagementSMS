@@ -16,19 +16,19 @@ class CreatePurchaseOrderAction
     /**
      * @param  list<array{inventory_item_id: int, quantity: int, unit_cost_cents: int}>  $lines
      */
-    public function handle(int $branchId, int $supplierId, User $createdBy, array $lines): PurchaseOrder
+    public function handle(int $branchId, int $supplierId, User $createdBy, array $lines, bool $asDraft = false): PurchaseOrder
     {
         if ($lines === []) {
             throw ValidationException::withMessages(['lines' => __('A purchase order needs at least one line item.')]);
         }
 
-        return DB::transaction(function () use ($branchId, $supplierId, $createdBy, $lines) {
+        return DB::transaction(function () use ($branchId, $supplierId, $createdBy, $lines, $asDraft) {
             $purchaseOrder = PurchaseOrder::create([
                 'branch_id' => $branchId,
                 'supplier_id' => $supplierId,
                 'created_by_user_id' => $createdBy->id,
                 'po_number' => $this->generatePoNumber(),
-                'status' => PurchaseOrderStatus::Sent,
+                'status' => $asDraft ? PurchaseOrderStatus::Draft : PurchaseOrderStatus::Sent,
             ]);
 
             $totalCents = 0;

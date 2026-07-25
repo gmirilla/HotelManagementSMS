@@ -10,6 +10,7 @@ use App\Domain\Restaurant\Enums\TableStatus;
 use App\Models\RestaurantOrder;
 use App\Models\RestaurantTable;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CreateRestaurantOrderAction
@@ -26,22 +27,31 @@ class CreateRestaurantOrderAction
             throw ValidationException::withMessages(['table' => __('A dine-in order requires a table.')]);
         }
 
-        if ($table && $table->status !== TableStatus::Free) {
-            throw ValidationException::withMessages(['table' => __('This table is not free.')]);
-        }
+        return DB::transaction(function () use ($branchId, $outletId, $staff, $orderType, $table, $guestId) {
+            // Locked so two concurrent requests for the same table can't
+            // both pass the "is seatable" check before either commits and
+            // open duplicate orders against it. A Reserved table can still
+            // be seated — that's the point of a reservation — only an
+            // already-Occupied table is rejected.
+            $lockedTable = $table instanceof RestaurantTable ? RestaurantTable::whereKey($table->id)->lockForUpdate()->firstOrFail() : null;
 
-        $order = RestaurantOrder::create([
-            'branch_id' => $branchId,
-            'outlet_id' => $outletId,
-            'table_id' => $table?->id,
-            'guest_id' => $guestId,
-            'order_type' => $orderType,
-            'status' => OrderStatus::Open,
-            'opened_by_user_id' => $staff->id,
-        ]);
+            if ($lockedTable && ! in_array($lockedTable->status, [TableStatus::Free, TableStatus::Reserved], true)) {
+                throw ValidationException::withMessages(['table' => __('This table is not free.')]);
+            }
 
-        $table?->update(['status' => TableStatus::Occupied]);
+            $order = RestaurantOrder::create([
+                'branch_id' => $branchId,
+                'outlet_id' => $outletId,
+                'table_id' => $lockedTable?->id,
+                'guest_id' => $guestId,
+                'order_type' => $orderType,
+                'status' => OrderStatus::Open,
+                'opened_by_user_id' => $staff->id,
+            ]);
 
-        return $order;
+            $lockedTable?->update(['status' => TableStatus::Occupied]);
+
+            return $order;
+        });
     }
 }

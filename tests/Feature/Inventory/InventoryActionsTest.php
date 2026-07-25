@@ -68,6 +68,27 @@ test('a zero-quantity adjustment is rejected', function (): void {
     app(AdjustStockAction::class)->handle($item, 0, $staff);
 })->throws(ValidationException::class);
 
+test('issuing more stock than is on hand is rejected', function (): void {
+    $item = InventoryItem::factory()->withOpeningStock(5)->create();
+    $staff = User::factory()->create();
+
+    app(IssueStockAction::class)->handle($item, 6, $staff);
+})->throws(ValidationException::class);
+
+test('a rejected over-issue leaves quantity on hand unchanged', function (): void {
+    $item = InventoryItem::factory()->withOpeningStock(5)->create();
+    $staff = User::factory()->create();
+
+    try {
+        app(IssueStockAction::class)->handle($item, 6, $staff);
+    } catch (ValidationException) {
+        // expected
+    }
+
+    expect($item->fresh()->quantity_on_hand)->toBe(5)
+        ->and($item->stockMovements()->count())->toBe(1);
+});
+
 test('quantity on hand is always derived from the movement ledger, not stored independently', function (): void {
     $item = InventoryItem::factory()->create(['quantity_on_hand' => 999]);
     $staff = User::factory()->create();

@@ -40,4 +40,9 @@ class RestaurantOrderPolicy
     {
         return $user->canAccessBranch($order->branch_id) && $user->hasAnyPermission(['restaurant.manage', 'restaurant.orders.create']);
     }
+
+    public function void(User $user, RestaurantOrder $order): bool
+    {
+        return $user->canAccessBranch($order->branch_id) && $user->hasAnyPermission(['restaurant.manage', 'restaurant.orders.create']);
+    }
 }

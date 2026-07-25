@@ -28,4 +28,19 @@ class PurchaseOrderPolicy
     {
         return $user->canAccessBranch($purchaseOrder->branch_id) && $user->hasAnyPermission(['procurement.manage', 'inventory.manage']);
     }
+
+    public function send(User $user, PurchaseOrder $purchaseOrder): bool
+    {
+        return $user->canAccessBranch($purchaseOrder->branch_id) && $user->hasPermissionTo('procurement.manage');
+    }
+
+    public function cancel(User $user, PurchaseOrder $purchaseOrder): bool
+    {
+        return $user->canAccessBranch($purchaseOrder->branch_id) && $user->hasPermissionTo('procurement.manage');
+    }
+
+    public function close(User $user, PurchaseOrder $purchaseOrder): bool
+    {
+        return $user->canAccessBranch($purchaseOrder->branch_id) && $user->hasPermissionTo('procurement.manage');
+    }
 }

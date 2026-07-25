@@ -46,8 +46,13 @@
                     <button type="button" wire:click="addLine" class="text-sm font-medium text-brand-600 hover:text-brand-500">+ Add line</button>
                 </div>
 
+                <label class="flex items-center gap-2 text-sm text-slate-600">
+                    <input type="checkbox" wire:model="saveAsDraft" class="rounded border-slate-300">
+                    Save as draft (don't send to supplier yet)
+                </label>
+
                 <div class="flex gap-3">
-                    <x-primary-button class="w-auto">Create purchase order</x-primary-button>
+                    <x-primary-button class="w-auto">{{ $saveAsDraft ? 'Save draft' : 'Create purchase order' }}</x-primary-button>
                     <button type="button" wire:click="$set('showForm', false)" class="text-sm text-slate-500 hover:text-slate-700">Cancel</button>
                 </div>
             </form>
@@ -97,6 +102,32 @@
                         @endif
                     @endif
                 @endcan
+
+                <div class="mt-3 flex gap-3 border-t border-slate-100 pt-3 text-sm font-medium">
+                    @can('send', $po)
+                        @if ($po->status->value === 'draft')
+                            <button wire:click="sendPurchaseOrder({{ $po->id }})" class="text-brand-600 hover:text-brand-500">
+                                Send to supplier
+                            </button>
+                        @endif
+                    @endcan
+
+                    @can('cancel', $po)
+                        @if (in_array($po->status->value, ['draft', 'sent']) && ! $po->items->contains(fn ($line) => $line->quantity_received > 0))
+                            <button wire:click="cancelPurchaseOrder({{ $po->id }})" wire:confirm="Cancel this purchase order?" class="text-red-600 hover:text-red-500">
+                                Cancel
+                            </button>
+                        @endif
+                    @endcan
+
+                    @can('close', $po)
+                        @if (in_array($po->status->value, ['partially_received', 'received']))
+                            <button wire:click="closePurchaseOrder({{ $po->id }})" class="text-slate-600 hover:text-slate-800">
+                                Close
+                            </button>
+                        @endif
+                    @endcan
+                </div>
             </div>
         @empty
             <p class="text-sm text-slate-500">No purchase orders yet.</p>

@@ -9,6 +9,7 @@ use App\Domain\Inventory\Support\InventoryQuantityCalculator;
 use App\Models\InventoryItem;
 use App\Models\StockMovement;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -26,16 +27,18 @@ class AdjustStockAction
             throw ValidationException::withMessages(['quantity' => __('Adjustment quantity cannot be zero.')]);
         }
 
-        $movement = $item->stockMovements()->create([
-            'movement_type' => StockMovementType::Adjustment,
-            'quantity' => $signedQuantity,
-            'unit_cost_cents' => $item->average_cost_cents,
-            'notes' => $reason ?: null,
-            'recorded_by_user_id' => $recordedBy->id,
-        ]);
+        return DB::transaction(function () use ($item, $signedQuantity, $recordedBy, $reason) {
+            $movement = $item->stockMovements()->create([
+                'movement_type' => StockMovementType::Adjustment,
+                'quantity' => $signedQuantity,
+                'unit_cost_cents' => $item->average_cost_cents,
+                'notes' => $reason ?: null,
+                'recorded_by_user_id' => $recordedBy->id,
+            ]);
 
-        $this->quantityCalculator->recalculate($item);
+            $this->quantityCalculator->recalculate($item);
 
-        return $movement;
+            return $movement;
+        });
     }
 }

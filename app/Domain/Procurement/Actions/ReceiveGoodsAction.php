@@ -58,6 +58,17 @@ class ReceiveGoodsAction
                 }
 
                 $line = $purchaseOrder->items()->findOrFail($purchaseOrderItemId);
+
+                if ($line->quantity_received + $quantity > $line->quantity_ordered) {
+                    throw ValidationException::withMessages([
+                        'quantities' => __('Cannot receive :quantity of :item — only :outstanding is still outstanding on this line.', [
+                            'quantity' => $quantity,
+                            'item' => $line->inventoryItem->name,
+                            'outstanding' => $line->outstandingQuantity(),
+                        ]),
+                    ]);
+                }
+
                 $line->increment('quantity_received', $quantity);
                 $receivedValueCents += $quantity * $line->unit_cost_cents;
 

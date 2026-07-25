@@ -16,13 +16,36 @@
                 </select>
             @endif
 
+            @if ($this->warehouses->count() > 1)
+                <select wire:model.live="activeWarehouseId" class="rounded-md border-slate-300 text-sm shadow-sm">
+                    @foreach ($this->warehouses as $warehouse)
+                        <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                    @endforeach
+                </select>
+            @endif
+
             @can('create', App\Models\InventoryItem::class)
+                <button wire:click="createWarehouse" class="text-sm font-medium text-brand-600 hover:text-brand-500">
+                    + Warehouse
+                </button>
                 <button wire:click="create" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                     New item
                 </button>
             @endcan
         </div>
     </div>
+
+    @if ($showWarehouseForm)
+        <form wire:submit="saveWarehouse" class="mb-6 flex items-end gap-3 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-4">
+            <div>
+                <x-input-label value="Warehouse name" />
+                <x-text-input type="text" wire:model="newWarehouseName" placeholder="e.g. Kitchen Store" />
+                <x-input-error :messages="$errors->get('newWarehouseName')" />
+            </div>
+            <x-primary-button class="w-auto">Save</x-primary-button>
+            <button type="button" wire:click="$set('showWarehouseForm', false)" class="text-sm text-slate-500 hover:text-slate-700">Cancel</button>
+        </form>
+    @endif
 
     @if ($showForm)
         <div class="mb-6 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-6">
@@ -85,6 +108,9 @@
                                     <button wire:click="startMovement({{ $item->id }}, 'receive')" class="text-brand-600 hover:text-brand-500">Receive</button>
                                     <button wire:click="startMovement({{ $item->id }}, 'wastage')" class="text-red-600 hover:text-red-500">Wastage</button>
                                     <button wire:click="startMovement({{ $item->id }}, 'adjust')" class="text-slate-600 hover:text-slate-800">Adjust</button>
+                                    @if ($this->warehouses->count() > 1)
+                                        <button wire:click="startMovement({{ $item->id }}, 'transfer')" class="text-slate-600 hover:text-slate-800">Transfer</button>
+                                    @endif
                                 </div>
                             @endcan
 
@@ -94,8 +120,19 @@
                                     @if ($movementMode === 'receive')
                                         <input type="number" step="0.01" wire:model="movementUnitCost" placeholder="Unit cost" class="w-24 rounded-md border-slate-300 text-sm">
                                     @endif
+                                    @if ($movementMode === 'transfer')
+                                        <select wire:model="transferDestinationWarehouseId" class="rounded-md border-slate-300 text-sm">
+                                            <option value="">To warehouse&hellip;</option>
+                                            @foreach ($this->warehouses as $warehouse)
+                                                @if ($warehouse->id !== $item->warehouse_id)
+                                                    <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                                                @endif
+                                            @endforeach
+                                        </select>
+                                    @endif
                                     <button type="submit" class="rounded-md bg-brand-600 px-2 py-1 text-xs font-medium text-white hover:bg-brand-500">Go</button>
                                 </form>
+                                <x-input-error :messages="$errors->get('transferDestinationWarehouseId')" />
                             @endif
                         </td>
                     </tr>

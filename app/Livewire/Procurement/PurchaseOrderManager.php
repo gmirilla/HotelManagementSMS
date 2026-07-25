@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire\Procurement;
 
+use App\Domain\Procurement\Actions\CancelPurchaseOrderAction;
+use App\Domain\Procurement\Actions\ClosePurchaseOrderAction;
 use App\Domain\Procurement\Actions\CreatePurchaseOrderAction;
 use App\Domain\Procurement\Actions\ReceiveGoodsAction;
+use App\Domain\Procurement\Actions\SendPurchaseOrderAction;
 use App\Livewire\Concerns\InteractsWithActiveBranch;
 use App\Models\InventoryItem;
 use App\Models\PurchaseOrder;
@@ -29,6 +32,8 @@ class PurchaseOrderManager extends Component
 
     /** @var array<int, array{inventory_item_id: string, quantity: string, unit_cost: string}> */
     public array $lines = [['inventory_item_id' => '', 'quantity' => '', 'unit_cost' => '']];
+
+    public bool $saveAsDraft = false;
 
     public ?int $receivingId = null;
 
@@ -72,7 +77,7 @@ class PurchaseOrderManager extends Component
     public function create(): void
     {
         $this->authorize('create', PurchaseOrder::class);
-        $this->reset(['supplierId']);
+        $this->reset(['supplierId', 'saveAsDraft']);
         $this->lines = [['inventory_item_id' => '', 'quantity' => '', 'unit_cost' => '']];
         $this->showForm = true;
     }
@@ -95,9 +100,39 @@ class PurchaseOrderManager extends Component
             'unit_cost_cents' => (int) round(((float) $line['unit_cost']) * 100),
         ])->all();
 
-        $createPurchaseOrder->handle($this->branchId, $this->supplierId, auth()->user(), $lines);
+        $createPurchaseOrder->handle($this->branchId, $this->supplierId, auth()->user(), $lines, $this->saveAsDraft);
 
         $this->showForm = false;
+        unset($this->purchaseOrders);
+    }
+
+    public function sendPurchaseOrder(int $purchaseOrderId, SendPurchaseOrderAction $sendPurchaseOrder): void
+    {
+        $purchaseOrder = PurchaseOrder::findOrFail($purchaseOrderId);
+        $this->authorize('send', $purchaseOrder);
+
+        $sendPurchaseOrder->handle($purchaseOrder);
+
+        unset($this->purchaseOrders);
+    }
+
+    public function cancelPurchaseOrder(int $purchaseOrderId, CancelPurchaseOrderAction $cancelPurchaseOrder): void
+    {
+        $purchaseOrder = PurchaseOrder::findOrFail($purchaseOrderId);
+        $this->authorize('cancel', $purchaseOrder);
+
+        $cancelPurchaseOrder->handle($purchaseOrder);
+
+        unset($this->purchaseOrders);
+    }
+
+    public function closePurchaseOrder(int $purchaseOrderId, ClosePurchaseOrderAction $closePurchaseOrder): void
+    {
+        $purchaseOrder = PurchaseOrder::findOrFail($purchaseOrderId);
+        $this->authorize('close', $purchaseOrder);
+
+        $closePurchaseOrder->handle($purchaseOrder);
+
         unset($this->purchaseOrders);
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Restaurant;
 
 use App\Domain\Restaurant\Enums\OutletType;
+use App\Domain\Restaurant\Enums\TableStatus;
 use App\Livewire\Concerns\InteractsWithActiveBranch;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
@@ -12,6 +13,7 @@ use App\Models\RestaurantOutlet;
 use App\Models\RestaurantTable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -154,6 +156,24 @@ class MenuManager extends Component
         $item->update(['is_available' => ! $item->is_available]);
 
         unset($this->categories);
+    }
+
+    public function toggleTableReservation(int $tableId): void
+    {
+        $this->authorizeRestaurantManage();
+
+        $table = RestaurantTable::findOrFail($tableId);
+        abort_unless($table->outlet_id === $this->selectedOutletId, 403);
+
+        $table->update([
+            'status' => match ($table->status) {
+                TableStatus::Free => TableStatus::Reserved,
+                TableStatus::Reserved => TableStatus::Free,
+                TableStatus::Occupied => throw ValidationException::withMessages(['table' => __('An occupied table cannot be reserved or unreserved.')]),
+            },
+        ]);
+
+        unset($this->tables);
     }
 
     private function authorizeRestaurantManage(): void

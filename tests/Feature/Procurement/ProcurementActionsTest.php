@@ -112,3 +112,69 @@ test('receiving a partial quantity marks the PO partially received', function ()
         ->and($po->items->first()->fresh()->quantity_received)->toBe(8)
         ->and($po->items->first()->fresh()->outstandingQuantity())->toBe(12);
 });
+
+test('receiving more than was ordered on a line is rejected', function (): void {
+    $branch = Branch::factory()->create();
+    seedChartOfAccounts($branch);
+    $warehouse = Warehouse::factory()->create(['branch_id' => $branch->id]);
+    $item = InventoryItem::factory()->create(['warehouse_id' => $warehouse->id]);
+    $supplier = Supplier::factory()->create(['tenant_id' => $branch->tenant_id]);
+    $staff = User::factory()->create();
+
+    $po = app(CreatePurchaseOrderAction::class)->handle($branch->id, $supplier->id, $staff, [
+        ['inventory_item_id' => $item->id, 'quantity' => 20, 'unit_cost_cents' => 300],
+    ]);
+
+    app(ReceiveGoodsAction::class)->handle($po, [$po->items->first()->id => 21], $staff);
+})->throws(ValidationException::class);
+
+test('a rejected over-receipt leaves stock and the PO line untouched', function (): void {
+    $branch = Branch::factory()->create();
+    seedChartOfAccounts($branch);
+    $warehouse = Warehouse::factory()->create(['branch_id' => $branch->id]);
+    $item = InventoryItem::factory()->create(['warehouse_id' => $warehouse->id, 'quantity_on_hand' => 0]);
+    $supplier = Supplier::factory()->create(['tenant_id' => $branch->tenant_id]);
+    $staff = User::factory()->create();
+
+    $po = app(CreatePurchaseOrderAction::class)->handle($branch->id, $supplier->id, $staff, [
+        ['inventory_item_id' => $item->id, 'quantity' => 20, 'unit_cost_cents' => 300],
+    ]);
+
+    try {
+        app(ReceiveGoodsAction::class)->handle($po, [$po->items->first()->id => 21], $staff);
+    } catch (ValidationException) {
+        // expected
+    }
+
+    expect($item->fresh()->quantity_on_hand)->toBe(0)
+        ->and($po->items->first()->fresh()->quantity_received)->toBe(0)
+        ->and(ApEntry::where('purchase_order_id', $po->id)->exists())->toBeFalse();
+});
+
+test('a partial over-receipt across multiple lines rolls back the whole delivery', function (): void {
+    $branch = Branch::factory()->create();
+    seedChartOfAccounts($branch);
+    $warehouse = Warehouse::factory()->create(['branch_id' => $branch->id]);
+    $itemA = InventoryItem::factory()->create(['warehouse_id' => $warehouse->id, 'quantity_on_hand' => 0]);
+    $itemB = InventoryItem::factory()->create(['warehouse_id' => $warehouse->id, 'quantity_on_hand' => 0]);
+    $supplier = Supplier::factory()->create(['tenant_id' => $branch->tenant_id]);
+    $staff = User::factory()->create();
+
+    $po = app(CreatePurchaseOrderAction::class)->handle($branch->id, $supplier->id, $staff, [
+        ['inventory_item_id' => $itemA->id, 'quantity' => 10, 'unit_cost_cents' => 100],
+        ['inventory_item_id' => $itemB->id, 'quantity' => 10, 'unit_cost_cents' => 100],
+    ]);
+    [$lineA, $lineB] = $po->items;
+
+    try {
+        // Line A is a legitimate full receipt; line B over-receives — the
+        // whole delivery, including the otherwise-valid line A, must not
+        // partially apply.
+        app(ReceiveGoodsAction::class)->handle($po, [$lineA->id => 10, $lineB->id => 11], $staff);
+    } catch (ValidationException) {
+        // expected
+    }
+
+    expect($itemA->fresh()->quantity_on_hand)->toBe(0)
+        ->and($lineA->fresh()->quantity_received)->toBe(0);
+});

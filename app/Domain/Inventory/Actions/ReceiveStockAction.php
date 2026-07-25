@@ -10,6 +10,7 @@ use App\Models\InventoryItem;
 use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -26,28 +27,31 @@ class ReceiveStockAction
         int $unitCostCents,
         User $recordedBy,
         ?Model $reference = null,
+        StockMovementType $movementType = StockMovementType::Receipt,
     ): StockMovement {
         if ($quantity <= 0) {
             throw ValidationException::withMessages(['quantity' => __('Received quantity must be greater than zero.')]);
         }
 
-        $movement = $item->stockMovements()->create([
-            'movement_type' => StockMovementType::Receipt,
-            'quantity' => $quantity,
-            'unit_cost_cents' => $unitCostCents,
-            'reference_type' => $reference?->getMorphClass(),
-            'reference_id' => $reference?->getKey(),
-            'recorded_by_user_id' => $recordedBy->id,
-        ]);
+        return DB::transaction(function () use ($item, $quantity, $unitCostCents, $recordedBy, $reference, $movementType) {
+            $movement = $item->stockMovements()->create([
+                'movement_type' => $movementType,
+                'quantity' => $quantity,
+                'unit_cost_cents' => $unitCostCents,
+                'reference_type' => $reference?->getMorphClass(),
+                'reference_id' => $reference?->getKey(),
+                'recorded_by_user_id' => $recordedBy->id,
+            ]);
 
-        $existingQuantity = $item->quantity_on_hand;
-        $newAverageCost = $existingQuantity + $quantity > 0
-            ? (int) round((($existingQuantity * $item->average_cost_cents) + ($quantity * $unitCostCents)) / ($existingQuantity + $quantity))
-            : $unitCostCents;
+            $existingQuantity = $item->quantity_on_hand;
+            $newAverageCost = $existingQuantity + $quantity > 0
+                ? (int) round((($existingQuantity * $item->average_cost_cents) + ($quantity * $unitCostCents)) / ($existingQuantity + $quantity))
+                : $unitCostCents;
 
-        $item->update(['average_cost_cents' => $newAverageCost]);
-        $this->quantityCalculator->recalculate($item);
+            $item->update(['average_cost_cents' => $newAverageCost]);
+            $this->quantityCalculator->recalculate($item);
 
-        return $movement;
+            return $movement;
+        });
     }
 }

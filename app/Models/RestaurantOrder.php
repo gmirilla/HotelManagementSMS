@@ -16,7 +16,7 @@ use Override;
 
 #[Fillable([
     'branch_id', 'outlet_id', 'table_id', 'guest_id', 'folio_id', 'order_type',
-    'status', 'discount_cents', 'tax_cents', 'total_cents', 'opened_by_user_id',
+    'status', 'void_reason', 'discount_cents', 'tax_cents', 'total_cents', 'opened_by_user_id',
 ])]
 class RestaurantOrder extends Model
 {

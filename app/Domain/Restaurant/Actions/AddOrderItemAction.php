@@ -10,6 +10,7 @@ use App\Domain\Restaurant\Support\OrderTotalCalculator;
 use App\Models\MenuItem;
 use App\Models\RestaurantOrder;
 use App\Models\RestaurantOrderItem;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class AddOrderItemAction
@@ -26,16 +27,18 @@ class AddOrderItemAction
             throw ValidationException::withMessages(['menu_item' => __('This menu item is currently unavailable.')]);
         }
 
-        $item = $order->items()->create([
-            'menu_item_id' => $menuItem->id,
-            'quantity' => $quantity,
-            'unit_price_cents' => $menuItem->price_cents,
-            'kitchen_status' => KitchenStatus::Queued,
-        ]);
+        return DB::transaction(function () use ($order, $menuItem, $quantity) {
+            $item = $order->items()->create([
+                'menu_item_id' => $menuItem->id,
+                'quantity' => $quantity,
+                'unit_price_cents' => $menuItem->price_cents,
+                'kitchen_status' => KitchenStatus::Queued,
+            ]);
 
-        $order->refresh();
-        $this->totalCalculator->recalculate($order);
+            $order->refresh();
+            $this->totalCalculator->recalculate($order);
 
-        return $item;
+            return $item;
+        });
     }
 }

@@ -18,13 +18,17 @@
                 <h2 class="mb-3 font-medium text-slate-800">Tables</h2>
                 <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
                     @foreach ($this->tables as $table)
-                        <button wire:click="startTableOrder({{ $table->id }})" @disabled($table->status->value !== 'free')
+                        <button wire:click="startTableOrder({{ $table->id }})" @disabled($table->status->value === 'occupied')
                             @class([
                                 'rounded-md border p-3 text-center text-sm',
                                 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' => $table->status->value === 'free',
-                                'border-slate-200 bg-slate-100 text-slate-400' => $table->status->value !== 'free',
+                                'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' => $table->status->value === 'reserved',
+                                'border-slate-200 bg-slate-100 text-slate-400' => $table->status->value === 'occupied',
                             ])>
                             {{ $table->label }}
+                            @if ($table->status->value === 'reserved')
+                                <span class="block text-xs">Reserved</span>
+                            @endif
                         </button>
                     @endforeach
                 </div>
@@ -92,6 +96,27 @@
                     <button wire:click="closeOrder" class="rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">
                         Close &amp; settle
                     </button>
+
+                    @if ($showVoidForm)
+                        <form wire:submit="voidOrder" class="space-y-2 rounded-md border border-red-200 bg-red-50 p-3">
+                            <x-input-label value="Reason for voiding" />
+                            <x-text-input type="text" wire:model="voidReason" placeholder="e.g. duplicate order, guest walked out" />
+                            <x-input-error :messages="$errors->get('reason')" />
+                            <div class="flex gap-2">
+                                <button type="submit" class="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-500">
+                                    Confirm void
+                                </button>
+                                <button type="button" wire:click="$set('showVoidForm', false)" class="text-sm text-slate-500 hover:text-slate-700">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    @else
+                        <button wire:click="$set('showVoidForm', true)" class="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
+                            Void order
+                        </button>
+                    @endif
+
                     <button wire:click="$set('activeOrderId', null)" class="text-sm text-slate-500 hover:text-slate-700">
                         Back to floor
                     </button>

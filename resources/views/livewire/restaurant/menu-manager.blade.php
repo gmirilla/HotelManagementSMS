@@ -59,11 +59,21 @@
                 <div class="flex flex-wrap gap-2">
                     @foreach ($this->tables as $table)
                         <span @class([
-                            'rounded-md px-3 py-1.5 text-sm',
+                            'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm',
                             'bg-emerald-50 text-emerald-700' => $table->status->value === 'free',
                             'bg-brand-50 text-brand-700' => $table->status->value === 'occupied',
                             'bg-amber-50 text-amber-700' => $table->status->value === 'reserved',
-                        ])>{{ $table->label }} ({{ $table->seats }})</span>
+                        ])>
+                            {{ $table->label }} ({{ $table->seats }})
+                            @can('restaurant.manage')
+                                @if ($table->status->value !== 'occupied')
+                                    <button wire:click="toggleTableReservation({{ $table->id }})"
+                                        class="text-xs font-medium underline decoration-dotted hover:no-underline">
+                                        {{ $table->status->value === 'reserved' ? 'Unreserve' : 'Reserve' }}
+                                    </button>
+                                @endif
+                            @endcan
+                        </span>
                     @endforeach
                 </div>
             </div>
