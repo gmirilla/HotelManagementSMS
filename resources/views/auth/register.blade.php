@@ -1,5 +1,6 @@
-<x-layouts.guest title="Create account">
-    <h1 class="mb-6 text-xl font-semibold text-slate-900">Create your guest account</h1>
+<x-layouts.guest title="Create account" :split="true">
+    <h1 class="text-2xl font-semibold text-slate-900">Create your account</h1>
+    <p class="mt-1 mb-6 text-sm text-slate-500">Set up guest access to manage your bookings.</p>
 
     <form method="POST" action="{{ route('register') }}" class="space-y-5">
         @csrf

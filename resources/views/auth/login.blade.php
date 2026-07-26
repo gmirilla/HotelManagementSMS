@@ -1,5 +1,6 @@
-<x-layouts.guest title="Log in">
-    <h1 class="mb-6 text-xl font-semibold text-slate-900">Log in to your account</h1>
+<x-layouts.guest title="Log in" :split="true">
+    <h1 class="text-2xl font-semibold text-slate-900">Welcome back</h1>
+    <p class="mt-1 mb-6 text-sm text-slate-500">Log in to continue to your dashboard.</p>
 
     @if (session('status'))
         <div class="mb-4 rounded-md bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -28,7 +29,7 @@
                 Remember me
             </label>
 
-            <a href="{{ route('password.request') }}" class="text-sm text-brand-600 hover:text-brand-500">
+            <a href="{{ route('password.request') }}" class="text-sm font-medium text-brand-600 hover:text-brand-500">
                 Forgot your password?
             </a>
         </div>
