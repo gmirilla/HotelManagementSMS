@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Restaurant\Enums\TableStatus;
 use App\Livewire\Restaurant\KitchenDisplay;
 use App\Livewire\Restaurant\MenuManager;
 use App\Livewire\Restaurant\PosTerminal;
@@ -63,4 +64,24 @@ test('the menu manager renders once an outlet and menu exist', function (): void
 
 test('the kitchen display renders with no active tickets', function (): void {
     Livewire::actingAs($this->staff)->test(KitchenDisplay::class)->assertOk();
+});
+
+test('the menu manager can reserve and unreserve a free table, but not an occupied one', function (): void {
+    $outlet = RestaurantOutlet::factory()->create(['branch_id' => $this->branch->id]);
+    $freeTable = RestaurantTable::factory()->create(['outlet_id' => $outlet->id, 'status' => TableStatus::Free]);
+    $occupiedTable = RestaurantTable::factory()->create(['outlet_id' => $outlet->id, 'status' => TableStatus::Occupied]);
+
+    $component = Livewire::actingAs($this->staff)
+        ->test(MenuManager::class)
+        ->set('selectedOutletId', $outlet->id)
+        ->call('toggleTableReservation', $freeTable->id)
+        ->assertOk();
+
+    expect($freeTable->fresh()->status)->toBe(TableStatus::Reserved);
+
+    $component->call('toggleTableReservation', $freeTable->id);
+    expect($freeTable->fresh()->status)->toBe(TableStatus::Free);
+
+    $component->call('toggleTableReservation', $occupiedTable->id)->assertHasErrors();
+    expect($occupiedTable->fresh()->status)->toBe(TableStatus::Occupied);
 });

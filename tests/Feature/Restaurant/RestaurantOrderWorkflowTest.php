@@ -8,6 +8,7 @@ use App\Domain\Restaurant\Actions\CloseRestaurantOrderAction;
 use App\Domain\Restaurant\Actions\CreateRestaurantOrderAction;
 use App\Domain\Restaurant\Actions\SendOrderToKitchenAction;
 use App\Domain\Restaurant\Actions\UpdateKitchenItemStatusAction;
+use App\Domain\Restaurant\Actions\VoidRestaurantOrderAction;
 use App\Domain\Restaurant\Enums\KitchenStatus;
 use App\Domain\Restaurant\Enums\OrderStatus;
 use App\Domain\Restaurant\Enums\OrderType;
@@ -276,6 +277,74 @@ test('an empty order cannot be closed', function (): void {
 
     app(CloseRestaurantOrderAction::class)->handle($order, $staff);
 })->throws(ValidationException::class);
+
+test('voiding an order frees its table and records the reason', function (): void {
+    $branch = Branch::factory()->create();
+    [$outlet, $menuItem] = makeMenuItemWithIngredient($branch);
+    $table = RestaurantTable::factory()->create(['outlet_id' => $outlet->id, 'status' => TableStatus::Free]);
+    $staff = User::factory()->create();
+
+    $order = app(CreateRestaurantOrderAction::class)->handle($branch->id, $outlet->id, $staff, OrderType::DineIn, $table);
+    app(AddOrderItemAction::class)->handle($order, $menuItem, 1);
+    $order->refresh();
+
+    app(VoidRestaurantOrderAction::class)->handle($order, 'Guest walked out');
+
+    expect($order->fresh()->status)->toBe(OrderStatus::Voided)
+        ->and($order->fresh()->void_reason)->toBe('Guest walked out')
+        ->and($table->fresh()->status)->toBe(TableStatus::Free);
+});
+
+test('voiding an order requires a reason', function (): void {
+    $branch = Branch::factory()->create();
+    [$outlet, $menuItem] = makeMenuItemWithIngredient($branch);
+    $staff = User::factory()->create();
+
+    $order = app(CreateRestaurantOrderAction::class)->handle($branch->id, $outlet->id, $staff, OrderType::Takeaway);
+    app(AddOrderItemAction::class)->handle($order, $menuItem, 1);
+    $order->refresh();
+
+    app(VoidRestaurantOrderAction::class)->handle($order, '   ');
+})->throws(ValidationException::class);
+
+test('a closed order cannot be voided', function (): void {
+    $branch = Branch::factory()->create();
+    seedChartOfAccounts($branch);
+    [$outlet, $menuItem] = makeMenuItemWithIngredient($branch);
+    $staff = User::factory()->create();
+
+    $order = app(CreateRestaurantOrderAction::class)->handle($branch->id, $outlet->id, $staff, OrderType::Takeaway);
+    app(AddOrderItemAction::class)->handle($order, $menuItem, 1);
+    $order->refresh();
+    app(CloseRestaurantOrderAction::class)->handle($order, $staff);
+
+    app(VoidRestaurantOrderAction::class)->handle($order->fresh(), 'too late');
+})->throws(ValidationException::class);
+
+test('an already-voided order cannot be voided again', function (): void {
+    $branch = Branch::factory()->create();
+    [$outlet, $menuItem] = makeMenuItemWithIngredient($branch);
+    $staff = User::factory()->create();
+
+    $order = app(CreateRestaurantOrderAction::class)->handle($branch->id, $outlet->id, $staff, OrderType::Takeaway);
+    app(AddOrderItemAction::class)->handle($order, $menuItem, 1);
+    $order->refresh();
+    app(VoidRestaurantOrderAction::class)->handle($order, 'first void');
+
+    app(VoidRestaurantOrderAction::class)->handle($order->fresh(), 'second void');
+})->throws(ValidationException::class);
+
+test('a reserved table can be seated, and a free-or-reserved-only guard still blocks an occupied one', function (): void {
+    $branch = Branch::factory()->create();
+    $outlet = RestaurantOutlet::factory()->create(['branch_id' => $branch->id]);
+    $reservedTable = RestaurantTable::factory()->create(['outlet_id' => $outlet->id, 'status' => TableStatus::Reserved]);
+    $staff = User::factory()->create();
+
+    $order = app(CreateRestaurantOrderAction::class)->handle($branch->id, $outlet->id, $staff, OrderType::DineIn, $reservedTable);
+
+    expect($order->status)->toBe(OrderStatus::Open)
+        ->and($reservedTable->fresh()->status)->toBe(TableStatus::Occupied);
+});
 
 test('items cannot be added to an order that is not open', function (): void {
     $branch = Branch::factory()->create();

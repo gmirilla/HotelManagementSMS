@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use App\Domain\Accounting\Enums\ApStatus;
+use App\Domain\Procurement\Actions\CancelPurchaseOrderAction;
+use App\Domain\Procurement\Actions\ClosePurchaseOrderAction;
 use App\Domain\Procurement\Actions\CreatePurchaseOrderAction;
 use App\Domain\Procurement\Actions\ReceiveGoodsAction;
+use App\Domain\Procurement\Actions\SendPurchaseOrderAction;
 use App\Domain\Procurement\Enums\PurchaseOrderStatus;
 use App\Models\ApEntry;
 use App\Models\Branch;
@@ -32,6 +35,102 @@ test('creating a purchase order computes the total from its line items', functio
         ->and($po->total_cents)->toBe(10 * 500 + 5 * 200)
         ->and($po->items)->toHaveCount(2);
 });
+
+test('a purchase order can be created as a draft and sent to the supplier later', function (): void {
+    $branch = Branch::factory()->create();
+    $warehouse = Warehouse::factory()->create(['branch_id' => $branch->id]);
+    $item = InventoryItem::factory()->create(['warehouse_id' => $warehouse->id]);
+    $supplier = Supplier::factory()->create(['tenant_id' => $branch->tenant_id]);
+    $staff = User::factory()->create();
+
+    $po = app(CreatePurchaseOrderAction::class)->handle($branch->id, $supplier->id, $staff, [
+        ['inventory_item_id' => $item->id, 'quantity' => 10, 'unit_cost_cents' => 500],
+    ], asDraft: true);
+
+    expect($po->status)->toBe(PurchaseOrderStatus::Draft);
+
+    app(SendPurchaseOrderAction::class)->handle($po);
+
+    expect($po->fresh()->status)->toBe(PurchaseOrderStatus::Sent);
+});
+
+test('a purchase order that is not a draft cannot be sent', function (): void {
+    $branch = Branch::factory()->create();
+    $warehouse = Warehouse::factory()->create(['branch_id' => $branch->id]);
+    $item = InventoryItem::factory()->create(['warehouse_id' => $warehouse->id]);
+    $supplier = Supplier::factory()->create(['tenant_id' => $branch->tenant_id]);
+    $staff = User::factory()->create();
+
+    $po = app(CreatePurchaseOrderAction::class)->handle($branch->id, $supplier->id, $staff, [
+        ['inventory_item_id' => $item->id, 'quantity' => 10, 'unit_cost_cents' => 500],
+    ]);
+
+    app(SendPurchaseOrderAction::class)->handle($po);
+})->throws(ValidationException::class);
+
+test('a draft or sent purchase order with nothing received can be cancelled', function (): void {
+    $branch = Branch::factory()->create();
+    $warehouse = Warehouse::factory()->create(['branch_id' => $branch->id]);
+    $item = InventoryItem::factory()->create(['warehouse_id' => $warehouse->id]);
+    $supplier = Supplier::factory()->create(['tenant_id' => $branch->tenant_id]);
+    $staff = User::factory()->create();
+
+    $po = app(CreatePurchaseOrderAction::class)->handle($branch->id, $supplier->id, $staff, [
+        ['inventory_item_id' => $item->id, 'quantity' => 10, 'unit_cost_cents' => 500],
+    ]);
+
+    app(CancelPurchaseOrderAction::class)->handle($po);
+
+    expect($po->fresh()->status)->toBe(PurchaseOrderStatus::Cancelled);
+});
+
+test('a purchase order that has already received goods cannot be cancelled', function (): void {
+    $branch = Branch::factory()->create();
+    seedChartOfAccounts($branch);
+    $warehouse = Warehouse::factory()->create(['branch_id' => $branch->id]);
+    $item = InventoryItem::factory()->create(['warehouse_id' => $warehouse->id]);
+    $supplier = Supplier::factory()->create(['tenant_id' => $branch->tenant_id]);
+    $staff = User::factory()->create();
+
+    $po = app(CreatePurchaseOrderAction::class)->handle($branch->id, $supplier->id, $staff, [
+        ['inventory_item_id' => $item->id, 'quantity' => 10, 'unit_cost_cents' => 500],
+    ]);
+    app(ReceiveGoodsAction::class)->handle($po, [$po->items->first()->id => 5], $staff);
+
+    app(CancelPurchaseOrderAction::class)->handle($po->fresh());
+})->throws(ValidationException::class);
+
+test('a partially received purchase order can be closed without receiving the rest', function (): void {
+    $branch = Branch::factory()->create();
+    seedChartOfAccounts($branch);
+    $warehouse = Warehouse::factory()->create(['branch_id' => $branch->id]);
+    $item = InventoryItem::factory()->create(['warehouse_id' => $warehouse->id]);
+    $supplier = Supplier::factory()->create(['tenant_id' => $branch->tenant_id]);
+    $staff = User::factory()->create();
+
+    $po = app(CreatePurchaseOrderAction::class)->handle($branch->id, $supplier->id, $staff, [
+        ['inventory_item_id' => $item->id, 'quantity' => 10, 'unit_cost_cents' => 500],
+    ]);
+    app(ReceiveGoodsAction::class)->handle($po, [$po->items->first()->id => 4], $staff);
+
+    app(ClosePurchaseOrderAction::class)->handle($po->fresh());
+
+    expect($po->fresh()->status)->toBe(PurchaseOrderStatus::Closed);
+});
+
+test('a draft purchase order cannot be closed', function (): void {
+    $branch = Branch::factory()->create();
+    $warehouse = Warehouse::factory()->create(['branch_id' => $branch->id]);
+    $item = InventoryItem::factory()->create(['warehouse_id' => $warehouse->id]);
+    $supplier = Supplier::factory()->create(['tenant_id' => $branch->tenant_id]);
+    $staff = User::factory()->create();
+
+    $po = app(CreatePurchaseOrderAction::class)->handle($branch->id, $supplier->id, $staff, [
+        ['inventory_item_id' => $item->id, 'quantity' => 10, 'unit_cost_cents' => 500],
+    ], asDraft: true);
+
+    app(ClosePurchaseOrderAction::class)->handle($po);
+})->throws(ValidationException::class);
 
 test('a purchase order requires at least one line item', function (): void {
     $branch = Branch::factory()->create();
