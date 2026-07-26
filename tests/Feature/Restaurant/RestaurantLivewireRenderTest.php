@@ -47,6 +47,15 @@ test('the POS terminal renders once an outlet, table, and menu exist', function 
     Livewire::actingAs($this->staff)->test(PosTerminal::class)->assertOk();
 });
 
+test('the POS terminal auto-selects the branch\'s first outlet on initial load', function (): void {
+    $outlet = RestaurantOutlet::factory()->create(['branch_id' => $this->branch->id]);
+    RestaurantTable::factory()->create(['outlet_id' => $outlet->id, 'status' => TableStatus::Free]);
+
+    Livewire::actingAs($this->staff)
+        ->test(PosTerminal::class)
+        ->assertSet('selectedOutletId', $outlet->id);
+});
+
 test('the menu manager renders with no outlets at all', function (): void {
     Livewire::actingAs($this->staff)->test(MenuManager::class)->assertOk();
 });
@@ -60,6 +69,14 @@ test('the menu manager renders once an outlet and menu exist', function (): void
         ->test(MenuManager::class)
         ->set('selectedOutletId', $outlet->id)
         ->assertOk();
+});
+
+test('the menu manager auto-selects the branch\'s first outlet on initial load', function (): void {
+    $outlet = RestaurantOutlet::factory()->create(['branch_id' => $this->branch->id]);
+
+    Livewire::actingAs($this->staff)
+        ->test(MenuManager::class)
+        ->assertSet('selectedOutletId', $outlet->id);
 });
 
 test('the kitchen display renders with no active tickets', function (): void {

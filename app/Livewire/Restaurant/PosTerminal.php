@@ -39,11 +39,6 @@ class PosTerminal extends Component
 
     public string $voidReason = '';
 
-    public function mount(): void
-    {
-        $this->selectedOutletId = $this->outlets->first()?->id;
-    }
-
     public function updatedSelectedOutletId(): void
     {
         abort_unless($this->outlets->contains('id', $this->selectedOutletId), 403);
@@ -166,6 +161,15 @@ class PosTerminal extends Component
 
     public function render()
     {
+        // Not in mount(): Livewire calls a component's own mount() before
+        // its traits' mount hooks, so $this->branchId (set by
+        // InteractsWithActiveBranch::mountInteractsWithActiveBranch) isn't
+        // populated yet there — defaulting the selection here instead,
+        // after the full mount cycle has run, is what actually lets it see
+        // the branch's outlets. ??= so a real user selection is never
+        // clobbered on a later render.
+        $this->selectedOutletId ??= $this->outlets->first()?->id;
+
         return view('livewire.restaurant.pos-terminal');
     }
 }

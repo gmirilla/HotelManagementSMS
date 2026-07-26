@@ -49,11 +49,6 @@ class MenuManager extends Component
 
     public string $itemPrice = '';
 
-    public function mount(): void
-    {
-        $this->selectedOutletId = $this->outlets->first()?->id;
-    }
-
     #[Computed]
     public function outlets(): Collection
     {
@@ -183,6 +178,15 @@ class MenuManager extends Component
 
     public function render()
     {
+        // Not in mount(): Livewire calls a component's own mount() before
+        // its traits' mount hooks, so $this->branchId (set by
+        // InteractsWithActiveBranch::mountInteractsWithActiveBranch) isn't
+        // populated yet there — defaulting the selection here instead,
+        // after the full mount cycle has run, is what actually lets it see
+        // the branch's outlets. ??= so a real user selection is never
+        // clobbered on a later render.
+        $this->selectedOutletId ??= $this->outlets->first()?->id;
+
         return view('livewire.restaurant.menu-manager', ['outletTypes' => OutletType::cases()]);
     }
 }
