@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Guests;
 
+use App\Domain\Guest\Actions\CreateGuestAction;
 use App\Domain\Guest\Enums\GuestFlag;
-use App\Domain\Guest\Enums\GuestType;
 use App\Models\Guest;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Layout;
@@ -92,23 +92,33 @@ class GuestManager extends Component
         $this->showForm = true;
     }
 
-    public function save(): void
+    public function save(CreateGuestAction $createGuest): void
     {
         $this->validate();
 
-        $guest = $this->editingId ? Guest::findOrFail($this->editingId) : new Guest;
-        $this->authorize($this->editingId ? 'update' : 'create', $this->editingId ? $guest : Guest::class);
+        if ($this->editingId) {
+            $guest = Guest::findOrFail($this->editingId);
+            $this->authorize('update', $guest);
 
-        $guest->fill([
-            'tenant_id' => auth()->user()->tenant_id,
-            'first_name' => $this->firstName,
-            'last_name' => $this->lastName,
-            'email' => $this->email ?: null,
-            'phone' => $this->phone ?: null,
-            'nationality' => $this->nationality ?: null,
-            'guest_type' => $guest->exists ? $guest->guest_type : GuestType::Individual,
-            'flag' => $guest->exists ? $guest->flag : GuestFlag::None,
-        ])->save();
+            $guest->fill([
+                'first_name' => $this->firstName,
+                'last_name' => $this->lastName,
+                'email' => $this->email ?: null,
+                'phone' => $this->phone ?: null,
+                'nationality' => $this->nationality ?: null,
+            ])->save();
+        } else {
+            $this->authorize('create', Guest::class);
+
+            $createGuest->handle(
+                tenantId: auth()->user()->tenant_id,
+                firstName: $this->firstName,
+                lastName: $this->lastName,
+                email: $this->email ?: null,
+                phone: $this->phone ?: null,
+                nationality: $this->nationality ?: null,
+            );
+        }
 
         $this->resetForm();
         $this->showForm = false;

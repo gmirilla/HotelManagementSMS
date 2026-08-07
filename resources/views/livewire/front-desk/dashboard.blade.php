@@ -7,13 +7,21 @@
             @endif
         </div>
 
-        @if ($this->accessibleBranches->count() > 1)
-            <select wire:model.live="branchId" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
-                @foreach ($this->accessibleBranches as $branch)
-                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                @endforeach
-            </select>
-        @endif
+        <div class="flex items-center gap-3">
+            @if ($this->accessibleBranches->count() > 1)
+                <select wire:model.live="branchId" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+                    @foreach ($this->accessibleBranches as $branch)
+                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                    @endforeach
+                </select>
+            @endif
+
+            @can('create', \App\Models\Reservation::class)
+                <a href="{{ route('front-desk.walk-in') }}" wire:navigate class="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-500">
+                    Walk-in check-in
+                </a>
+            @endcan
+        </div>
     </div>
 
     @if ($checkoutError)

@@ -22,6 +22,7 @@ use App\Livewire\Events\EventBookingManager;
 use App\Livewire\Events\EventSpaceManager;
 use App\Livewire\FrontDesk\Dashboard as FrontDeskDashboard;
 use App\Livewire\FrontDesk\FolioShow;
+use App\Livewire\FrontDesk\WalkInCheckIn;
 use App\Livewire\Guests\GuestManager;
 use App\Livewire\Guests\GuestProfile;
 use App\Livewire\Housekeeping\TaskBoard;
@@ -57,6 +58,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reservations/{reservation}', ReservationShow::class)->name('reservations.show');
 
     Route::get('front-desk', FrontDeskDashboard::class)->name('front-desk.index');
+    Route::get('front-desk/walk-in', WalkInCheckIn::class)->name('front-desk.walk-in');
 
     Route::get('folios/{folio}', FolioShow::class)->name('folios.show');
 

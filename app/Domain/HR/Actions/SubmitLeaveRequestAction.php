@@ -22,7 +22,10 @@ class SubmitLeaveRequestAction
             throw ValidationException::withMessages(['end_date' => __('The end date cannot be before the start date.')]);
         }
 
-        $daysRequested = $startDate->diffInDays($endDate) + 1;
+        // diffInDays() returns a float; round rather than truncate so sub-second
+        // drift between two separately-constructed Carbon instances (e.g. two
+        // now() calls) can't shift the result by a day in either direction.
+        $daysRequested = (int) round($startDate->diffInDays($endDate)) + 1;
 
         $remaining = $this->balanceCalculator->remainingDays($employee, $leaveType, $startDate->year);
 
