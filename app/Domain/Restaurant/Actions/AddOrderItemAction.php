@@ -23,8 +23,16 @@ class AddOrderItemAction
             throw ValidationException::withMessages(['order' => __('Items can only be added to an open order.')]);
         }
 
+        if ($quantity < 1) {
+            throw ValidationException::withMessages(['quantity' => __('Quantity must be at least 1.')]);
+        }
+
         if (! $menuItem->is_available) {
             throw ValidationException::withMessages(['menu_item' => __('This menu item is currently unavailable.')]);
+        }
+
+        if ($menuItem->category->outlet_id !== $order->outlet_id) {
+            throw ValidationException::withMessages(['menu_item' => __('This menu item does not belong to the order\'s outlet.')]);
         }
 
         return DB::transaction(function () use ($order, $menuItem, $quantity) {

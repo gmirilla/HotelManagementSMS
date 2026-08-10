@@ -41,4 +41,15 @@ class GuestPolicy
     {
         return $user->tenant_id === $guest->tenant_id && $user->hasPermissionTo('guests.manage');
     }
+
+    /**
+     * Blacklisting (and clearing a blacklist) is a distinct, higher-privilege
+     * action from ordinary guest management (NFR-SEC / FR-AUTHZ-005: sensitive
+     * actions require a distinct elevated permission — see FolioPolicy::void
+     * for the same pattern) — guests.manage alone does not grant it.
+     */
+    public function blacklist(User $user, Guest $guest): bool
+    {
+        return $user->tenant_id === $guest->tenant_id && $user->hasPermissionTo('guests.blacklist');
+    }
 }

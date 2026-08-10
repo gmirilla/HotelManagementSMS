@@ -27,12 +27,12 @@ class RolePermissionSeeder extends Seeder
             'reports.view', 'accounting.view', 'branches.manage', 'users.view', 'crm.view', 'events.view', 'settings.manage',
         ],
         'General Manager' => [
-            'reservations.manage', 'rooms.manage', 'guests.manage', 'housekeeping.manage',
+            'reservations.manage', 'rooms.manage', 'guests.manage', 'guests.blacklist', 'housekeeping.manage',
             'maintenance.manage', 'restaurant.manage', 'inventory.manage', 'procurement.manage', 'accounting.view',
             'hr.manage', 'reports.view', 'users.manage', 'folios.manage', 'folios.void', 'crm.manage', 'events.manage',
         ],
         'Branch Manager' => [
-            'reservations.manage', 'rooms.manage', 'guests.manage', 'housekeeping.manage',
+            'reservations.manage', 'rooms.manage', 'guests.manage', 'guests.blacklist', 'housekeeping.manage',
             'maintenance.manage', 'restaurant.manage', 'inventory.manage', 'procurement.manage', 'reports.view',
             'folios.manage', 'folios.void', 'crm.manage', 'events.manage',
         ],
@@ -68,7 +68,7 @@ class RolePermissionSeeder extends Seeder
             'maintenance.manage', 'rooms.view',
         ],
         'Security Officer' => [
-            'guests.view', 'audit.view',
+            'guests.view', 'guests.blacklist', 'audit.view',
         ],
         'HR' => [
             'hr.manage',

@@ -70,10 +70,13 @@ class CloseRestaurantOrderAction
 
     private function deductIngredients(RestaurantOrder $order, User $staff): void
     {
-        foreach ($order->items as $orderItem) {
-            $ingredients = MenuItemIngredient::where('menu_item_id', $orderItem->menu_item_id)->get();
+        $ingredientsByMenuItem = MenuItemIngredient::whereIn('menu_item_id', $order->items->pluck('menu_item_id')->unique())
+            ->with('inventoryItem')
+            ->get()
+            ->groupBy('menu_item_id');
 
-            foreach ($ingredients as $ingredient) {
+        foreach ($order->items as $orderItem) {
+            foreach ($ingredientsByMenuItem->get($orderItem->menu_item_id, []) as $ingredient) {
                 $totalQuantity = (int) ceil($ingredient->quantity * $orderItem->quantity);
 
                 if ($totalQuantity > 0) {

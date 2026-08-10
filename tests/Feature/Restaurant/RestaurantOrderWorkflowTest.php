@@ -355,3 +355,39 @@ test('items cannot be added to an order that is not open', function (): void {
 
     app(AddOrderItemAction::class)->handle($order->fresh(), $menuItem, 1);
 })->throws(ValidationException::class);
+
+test('an item cannot be added with a non-positive quantity', function (): void {
+    $branch = Branch::factory()->create();
+    [$outlet, $menuItem] = makeMenuItemWithIngredient($branch);
+    $staff = User::factory()->create();
+    $order = app(CreateRestaurantOrderAction::class)->handle($branch->id, $outlet->id, $staff, OrderType::Takeaway);
+
+    app(AddOrderItemAction::class)->handle($order, $menuItem, 0);
+})->throws(ValidationException::class);
+
+test('a menu item from a different outlet cannot be added to an order', function (): void {
+    $branch = Branch::factory()->create();
+    $outlet = RestaurantOutlet::factory()->create(['branch_id' => $branch->id]);
+    $staff = User::factory()->create();
+    $order = app(CreateRestaurantOrderAction::class)->handle($branch->id, $outlet->id, $staff, OrderType::Takeaway);
+
+    [, $foreignMenuItem] = makeMenuItemWithIngredient(Branch::factory()->create());
+
+    app(AddOrderItemAction::class)->handle($order, $foreignMenuItem, 1);
+})->throws(ValidationException::class);
+
+test('kitchen status cannot be updated once the order has been voided', function (): void {
+    $branch = Branch::factory()->create();
+    [$outlet, $menuItem] = makeMenuItemWithIngredient($branch);
+    $staff = User::factory()->create();
+
+    $order = app(CreateRestaurantOrderAction::class)->handle($branch->id, $outlet->id, $staff, OrderType::Takeaway);
+    app(AddOrderItemAction::class)->handle($order, $menuItem, 1);
+    $order->refresh();
+    app(SendOrderToKitchenAction::class)->handle($order);
+
+    $item = $order->items->first();
+    app(VoidRestaurantOrderAction::class)->handle($order->fresh(), 'Guest walked out');
+
+    app(UpdateKitchenItemStatusAction::class)->handle($item->fresh(), KitchenStatus::Preparing);
+})->throws(ValidationException::class);

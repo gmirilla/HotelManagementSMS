@@ -18,16 +18,18 @@
                 <h2 class="mb-3 font-medium text-slate-800">Tables</h2>
                 <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
                     @foreach ($this->tables as $table)
-                        <button wire:click="startTableOrder({{ $table->id }})" @disabled($table->status->value === 'occupied')
+                        <button wire:click="selectTable({{ $table->id }})"
                             @class([
                                 'rounded-md border p-3 text-center text-sm',
                                 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' => $table->status->value === 'free',
                                 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' => $table->status->value === 'reserved',
-                                'border-slate-200 bg-slate-100 text-slate-400' => $table->status->value === 'occupied',
+                                'border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100' => $table->status->value === 'occupied',
                             ])>
                             {{ $table->label }}
                             @if ($table->status->value === 'reserved')
                                 <span class="block text-xs">Reserved</span>
+                            @elseif ($table->status->value === 'occupied')
+                                <span class="block text-xs">View order</span>
                             @endif
                         </button>
                     @endforeach
@@ -36,14 +38,35 @@
 
             <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-3 font-medium text-slate-800">Room service</h2>
-                <input type="search" wire:model.live.debounce.300ms="guestSearch" placeholder="Search guest by last name&hellip;"
-                    class="mb-3 block w-full rounded-md border-slate-300 text-sm shadow-sm">
-                <div class="space-y-1">
-                    @foreach ($this->guestResults as $guest)
+                <form wire:submit="searchGuests" class="mb-3 flex gap-2">
+                    <input type="search" wire:model="guestSearch" placeholder="Search guest by name or room number&hellip;"
+                        class="block w-full rounded-md border-slate-300 text-sm shadow-sm">
+                    <button type="submit" class="shrink-0 rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-500">
+                        <span wire:loading.remove wire:target="searchGuests">Search</span>
+                        <span wire:loading wire:target="searchGuests">Searching&hellip;</span>
+                    </button>
+                </form>
+
+                @if ($hasSearchedGuests)
+                    <p class="mb-2 text-xs text-slate-500" wire:loading.remove wire:target="searchGuests">
+                        {{ $this->guestResults->count() }} {{ $this->guestResults->count() === 1 ? 'guest' : 'guests' }} found
+                    </p>
+                @endif
+
+                <div class="space-y-1" wire:loading.remove wire:target="searchGuests">
+                    @forelse ($this->guestResults as $guest)
+                        @php $room = $guest->reservations->first()?->rooms->first()?->room; @endphp
                         <button wire:click="startRoomServiceOrder({{ $guest->id }})" class="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-slate-50">
                             {{ $guest->fullName() }}
+                            @if ($room)
+                                <span class="text-slate-400">— Room {{ $room->room_number }}</span>
+                            @endif
                         </button>
-                    @endforeach
+                    @empty
+                        @if ($hasSearchedGuests)
+                            <p class="text-sm text-slate-500">No guests match &ldquo;{{ $guestSearch }}&rdquo;.</p>
+                        @endif
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -52,11 +75,19 @@
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div class="lg:col-span-2 rounded-xl border border-slate-200/70 bg-white shadow-sm shadow-slate-900/5 p-5">
                 <h2 class="mb-3 font-medium text-slate-800">Menu</h2>
+                @if ($order->status->value !== 'open')
+                    <p class="mb-3 text-xs text-slate-500">This order has been sent to the kitchen — items can no longer be added.</p>
+                @endif
                 @foreach ($this->menu as $categoryName => $items)
                     <p class="mb-1 mt-3 text-xs font-semibold uppercase text-slate-400">{{ $categoryName }}</p>
                     <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
                         @foreach ($items as $item)
-                            <button wire:click="addItem({{ $item->id }})" class="rounded-md border border-slate-200 p-2 text-left text-sm hover:border-brand-300">
+                            <button wire:click="addItem({{ $item->id }})" @disabled($order->status->value !== 'open')
+                                @class([
+                                    'rounded-md border p-2 text-left text-sm',
+                                    'border-slate-200 hover:border-brand-300' => $order->status->value === 'open',
+                                    'border-slate-100 text-slate-400' => $order->status->value !== 'open',
+                                ])>
                                 <span class="block font-medium text-slate-700">{{ $item->name }}</span>
                                 <span class="text-slate-500">₦{{ number_format($item->price_cents / 100, 2) }}</span>
                             </button>

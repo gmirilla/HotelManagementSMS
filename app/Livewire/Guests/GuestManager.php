@@ -23,6 +23,9 @@ class GuestManager extends Component
     #[Url]
     public string $search = '';
 
+    #[Url]
+    public bool $blacklistedOnly = false;
+
     public ?int $editingId = null;
 
     public bool $showForm = false;
@@ -36,6 +39,10 @@ class GuestManager extends Component
     public string $phone = '';
 
     public string $nationality = '';
+
+    public ?int $blacklistingGuestId = null;
+
+    public string $blacklistReason = '';
 
     protected function rules(): array
     {
@@ -53,6 +60,11 @@ class GuestManager extends Component
         $this->resetPage();
     }
 
+    public function updatingBlacklistedOnly(): void
+    {
+        $this->resetPage();
+    }
+
     public function guests(): LengthAwarePaginator
     {
         $user = auth()->user();
@@ -66,6 +78,7 @@ class GuestManager extends Component
                         ->orWhere('email', 'like', "%{$this->search}%");
                 });
             })
+            ->when($this->blacklistedOnly, fn ($query) => $query->where('flag', GuestFlag::Blacklisted))
             ->orderBy('last_name')
             ->paginate(15);
     }
@@ -130,6 +143,41 @@ class GuestManager extends Component
         $this->authorize('update', $guest);
 
         $guest->update(['flag' => $guest->flag === GuestFlag::Vip ? GuestFlag::None : GuestFlag::Vip]);
+    }
+
+    public function startBlacklist(int $guestId): void
+    {
+        $guest = Guest::findOrFail($guestId);
+        $this->authorize('blacklist', $guest);
+
+        $this->blacklistingGuestId = $guestId;
+        $this->blacklistReason = '';
+    }
+
+    public function cancelBlacklist(): void
+    {
+        $this->blacklistingGuestId = null;
+        $this->blacklistReason = '';
+    }
+
+    public function confirmBlacklist(): void
+    {
+        $guest = Guest::findOrFail($this->blacklistingGuestId);
+        $this->authorize('blacklist', $guest);
+
+        $this->validate(['blacklistReason' => ['required', 'string', 'max:500']]);
+
+        $guest->update(['flag' => GuestFlag::Blacklisted, 'blacklist_reason' => $this->blacklistReason]);
+
+        $this->cancelBlacklist();
+    }
+
+    public function removeFromBlacklist(int $guestId): void
+    {
+        $guest = Guest::findOrFail($guestId);
+        $this->authorize('blacklist', $guest);
+
+        $guest->update(['flag' => GuestFlag::None, 'blacklist_reason' => null]);
     }
 
     public function resetForm(): void

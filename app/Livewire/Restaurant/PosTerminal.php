@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Livewire\Restaurant;
 
+use App\Domain\Reservation\Enums\ReservationStatus;
 use App\Domain\Restaurant\Actions\AddOrderItemAction;
 use App\Domain\Restaurant\Actions\CloseRestaurantOrderAction;
 use App\Domain\Restaurant\Actions\CreateRestaurantOrderAction;
 use App\Domain\Restaurant\Actions\SendOrderToKitchenAction;
 use App\Domain\Restaurant\Actions\VoidRestaurantOrderAction;
+use App\Domain\Restaurant\Enums\OrderStatus;
 use App\Domain\Restaurant\Enums\OrderType;
+use App\Domain\Restaurant\Enums\TableStatus;
 use App\Livewire\Concerns\InteractsWithActiveBranch;
 use App\Models\Guest;
 use App\Models\MenuItem;
@@ -34,6 +37,8 @@ class PosTerminal extends Component
     public ?int $activeOrderId = null;
 
     public string $guestSearch = '';
+
+    public bool $hasSearchedGuests = false;
 
     public bool $showVoidForm = false;
 
@@ -81,6 +86,11 @@ class PosTerminal extends Component
             : null;
     }
 
+    /**
+     * Matches by guest name or by the room number of their current
+     * checked-in stay, since front-of-house staff more often know "room
+     * 204 wants room service" than the guest's name.
+     */
     #[Computed]
     public function guestResults(): SupportCollection
     {
@@ -89,17 +99,53 @@ class PosTerminal extends Component
         }
 
         return Guest::where('tenant_id', auth()->user()->tenant_id)
-            ->where('last_name', 'like', "%{$this->guestSearch}%")
+            ->where(function ($query) {
+                $query->where('first_name', 'like', "%{$this->guestSearch}%")
+                    ->orWhere('last_name', 'like', "%{$this->guestSearch}%")
+                    ->orWhereHas('reservations', function ($reservationQuery) {
+                        $reservationQuery->where('status', ReservationStatus::CheckedIn)
+                            ->whereHas('rooms.room', function ($roomQuery) {
+                                $roomQuery->where('room_number', 'like', "%{$this->guestSearch}%");
+                            });
+                    });
+            })
+            ->with(['reservations' => fn ($query) => $query->where('status', ReservationStatus::CheckedIn)->with('rooms.room')])
             ->limit(10)
             ->get();
     }
 
-    public function startTableOrder(int $tableId, CreateRestaurantOrderAction $createOrder): void
+    /**
+     * guestSearch is bound with a deferred (non-live) wire:model, so typing
+     * alone never triggers a request — this is the wire:submit target that
+     * actually runs a search, on either a button click or pressing Enter in
+     * the search field. The search itself happens in guestResults() once
+     * this round trip syncs guestSearch; this method only flips the flag the
+     * view uses to distinguish "haven't searched yet" from "searched, no
+     * matches" for the empty-state message.
+     */
+    public function searchGuests(): void
     {
-        $this->authorize('create', RestaurantOrder::class);
+        $this->hasSearchedGuests = true;
+    }
 
+    public function selectTable(int $tableId, CreateRestaurantOrderAction $createOrder): void
+    {
         $table = RestaurantTable::findOrFail($tableId);
         abort_unless($table->outlet_id === $this->selectedOutletId, 403);
+
+        if ($table->status === TableStatus::Occupied) {
+            $order = RestaurantOrder::where('table_id', $table->id)
+                ->whereIn('status', [OrderStatus::Open, OrderStatus::SentToKitchen, OrderStatus::Served])
+                ->latest()
+                ->firstOrFail();
+
+            $this->authorize('update', $order);
+            $this->activeOrderId = $order->id;
+
+            return;
+        }
+
+        $this->authorize('create', RestaurantOrder::class);
 
         $order = $createOrder->handle($this->branchId, $this->selectedOutletId, auth()->user(), OrderType::DineIn, $table);
 
@@ -111,10 +157,14 @@ class PosTerminal extends Component
     {
         $this->authorize('create', RestaurantOrder::class);
 
+        $guest = Guest::findOrFail($guestId);
+        abort_unless($guest->tenant_id === auth()->user()->tenant_id, 403);
+
         $order = $createOrder->handle($this->branchId, $this->selectedOutletId, auth()->user(), OrderType::RoomService, null, $guestId);
 
         $this->activeOrderId = $order->id;
         $this->guestSearch = '';
+        $this->hasSearchedGuests = false;
     }
 
     public function addItem(int $menuItemId, AddOrderItemAction $addOrderItem): void

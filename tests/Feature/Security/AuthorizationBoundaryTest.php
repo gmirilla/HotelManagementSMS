@@ -37,7 +37,7 @@ declare(strict_types=1);
  *    authorization check of their own; both relied on a separate create()
  *    method (which does authorize) having been called first to open the
  *    form, but Livewire methods are independently callable over the wire.
- * 10. PosTerminal::startTableOrder() trusted a client-supplied tableId
+ * 10. PosTerminal::selectTable() (formerly startTableOrder()) trusted a client-supplied tableId
  *     without checking it belonged to the selected outlet, and
  *     selectedOutletId itself (a public property) was never validated
  *     against the user's branch — either could be tampered with to open
@@ -479,7 +479,7 @@ test('the POS refuses a table order request for a table outside the selected out
 
     Livewire::actingAs($user)
         ->test(PosTerminal::class)
-        ->call('startTableOrder', $otherTable->id)
+        ->call('selectTable', $otherTable->id)
         ->assertForbidden();
 
     expect(RestaurantOrder::where('table_id', $otherTable->id)->exists())->toBeFalse()

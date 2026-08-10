@@ -49,6 +49,11 @@ class MenuManager extends Component
 
     public string $itemPrice = '';
 
+    public function updatedSelectedOutletId(): void
+    {
+        abort_unless($this->outlets->contains('id', $this->selectedOutletId), 403);
+    }
+
     #[Computed]
     public function outlets(): Collection
     {
@@ -107,6 +112,9 @@ class MenuManager extends Component
     {
         $this->authorizeRestaurantManage();
 
+        $category = MenuCategory::findOrFail($categoryId);
+        abort_unless($category->outlet_id === $this->selectedOutletId, 403);
+
         $this->menuCategoryId = $categoryId;
         $this->reset(['itemName', 'itemPrice', 'editingItemId']);
         $this->showItemForm = true;
@@ -119,6 +127,9 @@ class MenuManager extends Component
             'itemName' => ['required', 'string', 'max:255'],
             'itemPrice' => ['required', 'numeric', 'min:0'],
         ]);
+
+        $category = MenuCategory::findOrFail($this->menuCategoryId);
+        abort_unless($category->outlet_id === $this->selectedOutletId, 403);
 
         MenuItem::create([
             'menu_category_id' => $this->menuCategoryId,
@@ -147,7 +158,9 @@ class MenuManager extends Component
     {
         $this->authorizeRestaurantManage();
 
-        $item = MenuItem::findOrFail($itemId);
+        $item = MenuItem::with('category')->findOrFail($itemId);
+        abort_unless($item->category->outlet_id === $this->selectedOutletId, 403);
+
         $item->update(['is_available' => ! $item->is_available]);
 
         unset($this->categories);

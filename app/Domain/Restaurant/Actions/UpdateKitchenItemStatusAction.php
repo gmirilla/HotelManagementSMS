@@ -15,6 +15,10 @@ class UpdateKitchenItemStatusAction
 {
     public function handle(RestaurantOrderItem $item, KitchenStatus $status): RestaurantOrderItem
     {
+        if ($item->order->status !== OrderStatus::SentToKitchen) {
+            throw ValidationException::withMessages(['order' => __('Kitchen status can only be updated while the order is with the kitchen.')]);
+        }
+
         if (! $item->kitchen_status->canAdvanceTo($status)) {
             throw ValidationException::withMessages(['status' => __('Kitchen status cannot move backward or skip a step.')]);
         }
