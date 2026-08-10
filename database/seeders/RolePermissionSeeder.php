@@ -29,12 +29,12 @@ class RolePermissionSeeder extends Seeder
         'General Manager' => [
             'reservations.manage', 'rooms.manage', 'guests.manage', 'guests.blacklist', 'housekeeping.manage',
             'maintenance.manage', 'restaurant.manage', 'inventory.manage', 'procurement.manage', 'accounting.view',
-            'hr.manage', 'reports.view', 'users.manage', 'folios.manage', 'folios.void', 'crm.manage', 'events.manage',
+            'hr.manage', 'reports.view', 'users.manage', 'folios.manage', 'folios.void', 'folios.force_checkout', 'crm.manage', 'events.manage',
         ],
         'Branch Manager' => [
             'reservations.manage', 'rooms.manage', 'guests.manage', 'guests.blacklist', 'housekeeping.manage',
             'maintenance.manage', 'restaurant.manage', 'inventory.manage', 'procurement.manage', 'reports.view',
-            'folios.manage', 'folios.void', 'crm.manage', 'events.manage',
+            'folios.manage', 'folios.void', 'folios.force_checkout', 'crm.manage', 'events.manage',
         ],
         'Receptionist' => [
             'reservations.view', 'reservations.create', 'reservations.update',
@@ -59,7 +59,7 @@ class RolePermissionSeeder extends Seeder
             'restaurant.orders.view', 'restaurant.orders.update_kitchen_status',
         ],
         'Accountant' => [
-            'accounting.manage', 'reports.view', 'folios.view', 'payments.view', 'folios.void',
+            'accounting.manage', 'reports.view', 'folios.view', 'payments.view', 'folios.void', 'folios.force_checkout',
         ],
         'Cashier' => [
             'folios.manage', 'payments.process', 'payments.refund',

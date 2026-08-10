@@ -39,6 +39,17 @@ class FolioPolicy
     }
 
     /**
+     * Checking out with an outstanding balance still owing is a distinct,
+     * higher-privilege override from ordinary folio management (NFR-SEC /
+     * FR-AUTHZ-005: sensitive actions require a distinct elevated
+     * permission) — mirrors void() above.
+     */
+    public function forceCheckout(User $user, Folio $folio): bool
+    {
+        return $user->canAccessBranch($folio->branch_id) && $user->hasPermissionTo('folios.force_checkout');
+    }
+
+    /**
      * Starting a gateway checkout reuses the same permission the manual
      * payment form already requires (payments.process — see
      * StorePaymentRequest::authorize() for the identical branch+permission

@@ -33,7 +33,7 @@ class CheckInGuestAction
         private readonly FolioLedgerPoster $ledgerPoster,
     ) {}
 
-    public function handle(Reservation $reservation, Room $room, User $staff): Folio
+    public function handle(Reservation $reservation, Room $room, User $staff, ?int $earlyCheckInFeeCents = null): Folio
     {
         if (! in_array($reservation->status, [ReservationStatus::Pending, ReservationStatus::Confirmed], true)) {
             throw ValidationException::withMessages([
@@ -55,7 +55,7 @@ class CheckInGuestAction
             ]);
         }
 
-        return DB::transaction(function () use ($reservation, $room, $staff, $reservationRoom) {
+        return DB::transaction(function () use ($reservation, $room, $staff, $reservationRoom, $earlyCheckInFeeCents) {
             $fromRoomStatus = $room->status;
             $room->forceFill(['status' => RoomStatus::Occupied])->save();
             $room->statusLogs()->create([
@@ -82,6 +82,18 @@ class CheckInGuestAction
                 'guest_id' => $reservation->guest_id,
                 'status' => FolioStatus::Open,
             ]);
+
+            if ($earlyCheckInFeeCents > 0) {
+                $feeCharge = $folio->charges()->create([
+                    'charge_type' => ChargeType::EarlyCheckin,
+                    'description' => 'Early check-in fee',
+                    'amount_cents' => $earlyCheckInFeeCents,
+                    'charge_date' => now()->toDateString(),
+                    'posted_by_user_id' => $staff->id,
+                ]);
+                $feeCharge->setRelation('folio', $folio);
+                $this->ledgerPoster->postCharge($feeCharge, $staff);
+            }
 
             $nightlyRates = $this->rateResolver->nightlyRatesForStay($room->roomType, $reservation->arrival_date, $reservation->departure_date);
 

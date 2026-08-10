@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 
 class CheckOutGuestAction
 {
-    public function handle(Reservation $reservation, User $staff, bool $force = false): Reservation
+    public function handle(Reservation $reservation, User $staff, bool $force = false, ?string $forceReason = null): Reservation
     {
         if ($reservation->status !== ReservationStatus::CheckedIn) {
             throw ValidationException::withMessages([
@@ -33,7 +33,13 @@ class CheckOutGuestAction
             ]);
         }
 
-        return DB::transaction(function () use ($reservation, $staff, $folio) {
+        if ($force && trim((string) $forceReason) === '') {
+            throw ValidationException::withMessages([
+                'force_reason' => __('A reason is required to check out with an outstanding balance.'),
+            ]);
+        }
+
+        return DB::transaction(function () use ($reservation, $staff, $folio, $force, $forceReason) {
             if ($folio) {
                 $folio->forceFill(['status' => FolioStatus::Closed, 'closed_at' => now()])->save();
             }
@@ -57,7 +63,7 @@ class CheckOutGuestAction
                 'from_status' => $fromReservationStatus->value,
                 'to_status' => ReservationStatus::CheckedOut->value,
                 'changed_by_user_id' => $staff->id,
-                'reason' => 'Guest check-out',
+                'reason' => $force ? $forceReason : 'Guest check-out',
             ]);
 
             return $reservation;

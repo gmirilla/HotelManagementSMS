@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\FrontDesk\Actions\CheckInGuestAction;
 use App\Domain\FrontDesk\Actions\CheckOutGuestAction;
 use App\Domain\FrontDesk\Actions\PostFolioChargeAction;
+use App\Domain\FrontDesk\Enums\ChargeType;
 use App\Domain\Payment\Actions\RecordFolioPaymentAction;
 use App\Domain\Reservation\Enums\ReservationStatus;
 use App\Domain\Room\Enums\RoomStatus;
@@ -57,6 +58,18 @@ test('checking in assigns the room, opens a pre-charged folio, and occupies the 
         ->and($entries->sum(fn (JournalEntry $entry): int => $entry->totalDebitCents()))->toBe(20000);
 });
 
+test('an early check-in fee is posted onto the new folio alongside the room charges', function (): void {
+    [$reservation, $room] = makeReadyReservation(nights: 1);
+    $staff = User::factory()->create();
+
+    $folio = app(CheckInGuestAction::class)->handle($reservation, $room, $staff, earlyCheckInFeeCents: 1500);
+
+    $feeCharge = $folio->charges->firstWhere('charge_type', ChargeType::EarlyCheckin);
+    expect($feeCharge)->not->toBeNull()
+        ->and($feeCharge->amount_cents)->toBe(1500)
+        ->and($folio->balance_cents)->toBe(11500);
+});
+
 test('a room mismatched to the booked room type cannot be used for check-in', function (): void {
     [$reservation] = makeReadyReservation();
     $otherRoomType = RoomType::factory()->create(['branch_id' => $reservation->branch_id]);
@@ -103,10 +116,19 @@ test('forcing checkout bypasses the outstanding-balance guard', function (): voi
 
     app(CheckInGuestAction::class)->handle($reservation, $room, $staff);
 
-    $result = app(CheckOutGuestAction::class)->handle($reservation->fresh(), $staff, force: true);
+    $result = app(CheckOutGuestAction::class)->handle($reservation->fresh(), $staff, force: true, forceReason: 'Guest disputes minibar charge, GM approved.');
 
     expect($result->status)->toBe(ReservationStatus::CheckedOut);
 });
+
+test('forcing checkout without a reason is refused', function (): void {
+    [$reservation, $room] = makeReadyReservation(nights: 1);
+    $staff = User::factory()->create();
+
+    app(CheckInGuestAction::class)->handle($reservation, $room, $staff);
+
+    app(CheckOutGuestAction::class)->handle($reservation->fresh(), $staff, force: true);
+})->throws(ValidationException::class);
 
 test('posting an extra charge and a payment keeps the folio balance correct', function (): void {
     [$reservation, $room] = makeReadyReservation(nights: 1);

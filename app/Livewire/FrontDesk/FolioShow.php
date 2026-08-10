@@ -13,11 +13,13 @@ use App\Domain\Payment\Actions\RefundGatewayPaymentAction;
 use App\Domain\Payment\Enums\PaymentMethod;
 use App\Models\Folio;
 use App\Models\Payment;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.app')]
 #[Title('Folio')]
@@ -137,6 +139,28 @@ class FolioShow extends Component
         $refundPayment->handle($payment, __('Refunded by :name via Front Desk', ['name' => auth()->user()->name]), auth()->user());
 
         $this->folio->refresh();
+    }
+
+    public function downloadReceipt(): StreamedResponse
+    {
+        $this->authorize('view', $this->folio);
+
+        $this->folio->load(['charges', 'payments', 'guest', 'reservation', 'branch']);
+
+        $pdf = Pdf::loadView('pdf.folio-receipt', ['folio' => $this->folio]);
+
+        // Livewire's file-download support only intercepts a StreamedResponse
+        // or BinaryFileResponse from a component method — DomPDF's own
+        // ->download() returns a plain Illuminate\Http\Response, which
+        // Livewire doesn't recognize as a download and tries to serialize
+        // as a normal component response instead, corrupting the binary PDF.
+        return response()->streamDownload(
+            function () use ($pdf): void {
+                echo $pdf->output();
+            },
+            "receipt-{$this->folio->id}.pdf",
+            ['Content-Type' => 'application/pdf'],
+        );
     }
 
     public function render()

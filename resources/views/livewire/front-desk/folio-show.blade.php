@@ -9,6 +9,11 @@
             <p class="text-2xl font-semibold {{ $folio->balance_cents > 0 ? 'text-red-600' : 'text-emerald-600' }}">
                 ₦{{ number_format($folio->balance_cents / 100, 2) }}
             </p>
+            @if ($folio->status->value === 'closed')
+                <button wire:click="downloadReceipt" class="mt-2 text-sm font-medium text-brand-600 hover:text-brand-500">
+                    Download receipt
+                </button>
+            @endif
         </div>
     </div>
 

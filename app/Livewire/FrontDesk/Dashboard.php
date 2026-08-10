@@ -7,6 +7,10 @@ namespace App\Livewire\FrontDesk;
 use App\Domain\FrontDesk\Actions\ChangeReservationRoomAction;
 use App\Domain\FrontDesk\Actions\CheckInGuestAction;
 use App\Domain\FrontDesk\Actions\CheckOutGuestAction;
+use App\Domain\FrontDesk\Actions\PostFolioChargeAction;
+use App\Domain\FrontDesk\Enums\ChargeType;
+use App\Domain\Payment\Actions\RecordFolioPaymentAction;
+use App\Domain\Payment\Enums\PaymentMethod;
 use App\Domain\Reservation\Enums\ReservationStatus;
 use App\Livewire\Concerns\InteractsWithActiveBranch;
 use App\Models\Reservation;
@@ -30,7 +34,27 @@ class Dashboard extends Component
 
     public ?int $selectedRoomId = null;
 
+    public string $earlyCheckInFee = '';
+
     public ?string $checkoutError = null;
+
+    public ?int $checkoutErrorReservationId = null;
+
+    public ?int $lastCheckedOutFolioId = null;
+
+    public ?int $forceCheckoutReservationId = null;
+
+    public string $forceCheckoutReason = '';
+
+    public ?int $payingReservationId = null;
+
+    public string $paymentMethod = 'cash';
+
+    public string $paymentAmount = '';
+
+    public ?int $addingLateFeeReservationId = null;
+
+    public string $lateFeeAmount = '';
 
     public ?int $changingRoomReservationId = null;
 
@@ -44,7 +68,7 @@ class Dashboard extends Component
         return Reservation::where('branch_id', $this->branchId)
             ->whereIn('status', [ReservationStatus::Pending, ReservationStatus::Confirmed])
             ->whereDate('arrival_date', now()->toDateString())
-            ->with(['guest', 'rooms.roomType'])
+            ->with(['guest', 'rooms.roomType', 'branch'])
             ->get();
     }
 
@@ -54,7 +78,7 @@ class Dashboard extends Component
         return Reservation::where('branch_id', $this->branchId)
             ->where('status', ReservationStatus::CheckedIn)
             ->whereDate('departure_date', '<=', now()->toDateString())
-            ->with(['guest', 'folio', 'rooms.room'])
+            ->with(['guest', 'folio', 'rooms.room', 'branch'])
             ->get();
     }
 
@@ -101,11 +125,15 @@ class Dashboard extends Component
     {
         $this->checkingInReservationId = $reservationId;
         $this->selectedRoomId = null;
+        $this->earlyCheckInFee = '';
     }
 
     public function completeCheckIn(CheckInGuestAction $checkInGuest, ChangeReservationRoomAction $changeRoom): void
     {
-        $this->validate(['selectedRoomId' => ['required', 'integer']]);
+        $this->validate([
+            'selectedRoomId' => ['required', 'integer'],
+            'earlyCheckInFee' => ['nullable', 'numeric', 'min:0.01'],
+        ]);
 
         $reservation = Reservation::with('rooms')->findOrFail($this->checkingInReservationId);
         $this->authorize('update', $reservation);
@@ -121,26 +149,143 @@ class Dashboard extends Component
             $reservation->load('rooms');
         }
 
-        $checkInGuest->handle($reservation, $room, auth()->user());
+        $checkInGuest->handle(
+            $reservation,
+            $room,
+            auth()->user(),
+            earlyCheckInFeeCents: $this->earlyCheckInFee !== '' ? (int) round(((float) $this->earlyCheckInFee) * 100) : null,
+        );
 
         $this->checkingInReservationId = null;
         $this->selectedRoomId = null;
+        $this->earlyCheckInFee = '';
         unset($this->arrivals, $this->inHouse);
     }
 
     public function checkOut(int $reservationId, CheckOutGuestAction $checkOutGuest): void
     {
-        $reservation = Reservation::findOrFail($reservationId);
+        $reservation = Reservation::with('folio')->findOrFail($reservationId);
         $this->authorize('update', $reservation);
 
         try {
             $checkOutGuest->handle($reservation, auth()->user());
             $this->checkoutError = null;
+            $this->checkoutErrorReservationId = null;
+            $this->lastCheckedOutFolioId = $reservation->folio?->id;
         } catch (ValidationException $exception) {
             $this->checkoutError = collect($exception->errors())->flatten()->first();
+            $this->checkoutErrorReservationId = $reservationId;
         }
 
         unset($this->departures, $this->inHouse);
+    }
+
+    public function startForceCheckout(int $reservationId): void
+    {
+        $reservation = Reservation::with('folio')->findOrFail($reservationId);
+        abort_if(! $reservation->folio, 404);
+        $this->authorize('forceCheckout', $reservation->folio);
+
+        $this->forceCheckoutReservationId = $reservationId;
+        $this->forceCheckoutReason = '';
+    }
+
+    public function cancelForceCheckout(): void
+    {
+        $this->forceCheckoutReservationId = null;
+        $this->forceCheckoutReason = '';
+    }
+
+    public function confirmForceCheckout(CheckOutGuestAction $checkOutGuest): void
+    {
+        $this->validate(['forceCheckoutReason' => ['required', 'string', 'max:500']]);
+
+        $reservation = Reservation::with('folio')->findOrFail($this->forceCheckoutReservationId);
+        abort_if(! $reservation->folio, 404);
+        $this->authorize('forceCheckout', $reservation->folio);
+
+        $checkOutGuest->handle($reservation, auth()->user(), force: true, forceReason: $this->forceCheckoutReason);
+
+        $this->lastCheckedOutFolioId = $reservation->folio?->id;
+        $this->checkoutError = null;
+        $this->checkoutErrorReservationId = null;
+        $this->cancelForceCheckout();
+        unset($this->departures, $this->inHouse);
+    }
+
+    public function startPayment(int $reservationId): void
+    {
+        $reservation = Reservation::with('folio')->findOrFail($reservationId);
+        abort_if(! $reservation->folio, 404);
+        $this->authorize('update', $reservation->folio);
+
+        $this->payingReservationId = $reservationId;
+        $this->paymentMethod = 'cash';
+        $this->paymentAmount = '';
+    }
+
+    public function cancelPayment(): void
+    {
+        $this->payingReservationId = null;
+        $this->paymentAmount = '';
+    }
+
+    public function recordPayment(RecordFolioPaymentAction $recordPayment): void
+    {
+        $this->validate([
+            'paymentMethod' => ['required', 'string'],
+            'paymentAmount' => ['required', 'numeric', 'min:0.01'],
+        ]);
+
+        $reservation = Reservation::with('folio')->findOrFail($this->payingReservationId);
+        abort_if(! $reservation->folio, 404);
+        $this->authorize('update', $reservation->folio);
+
+        $recordPayment->handle(
+            $reservation->folio,
+            $this->paymentMethod,
+            (int) round(((float) $this->paymentAmount) * 100),
+            auth()->user(),
+        );
+
+        $this->cancelPayment();
+        unset($this->departures);
+    }
+
+    public function startLateFee(int $reservationId): void
+    {
+        $reservation = Reservation::with('folio')->findOrFail($reservationId);
+        abort_if(! $reservation->folio, 404);
+        $this->authorize('update', $reservation->folio);
+
+        $this->addingLateFeeReservationId = $reservationId;
+        $this->lateFeeAmount = '';
+    }
+
+    public function cancelLateFee(): void
+    {
+        $this->addingLateFeeReservationId = null;
+        $this->lateFeeAmount = '';
+    }
+
+    public function confirmLateFee(PostFolioChargeAction $postCharge): void
+    {
+        $this->validate(['lateFeeAmount' => ['required', 'numeric', 'min:0.01']]);
+
+        $reservation = Reservation::with('folio')->findOrFail($this->addingLateFeeReservationId);
+        abort_if(! $reservation->folio, 404);
+        $this->authorize('update', $reservation->folio);
+
+        $postCharge->handle(
+            $reservation->folio,
+            ChargeType::LateCheckout->value,
+            'Late checkout fee',
+            (int) round(((float) $this->lateFeeAmount) * 100),
+            auth()->user(),
+        );
+
+        $this->cancelLateFee();
+        unset($this->departures);
     }
 
     public function startRoomChange(int $reservationId): void
@@ -199,6 +344,8 @@ class Dashboard extends Component
 
     public function render()
     {
-        return view('livewire.front-desk.dashboard');
+        return view('livewire.front-desk.dashboard', [
+            'paymentMethods' => PaymentMethod::manual(),
+        ]);
     }
 }
