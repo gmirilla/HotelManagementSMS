@@ -12,6 +12,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.app')]
 #[Title('Cashbook')]
@@ -89,6 +90,31 @@ class Cashbook extends Component
         $entry = CashbookEntry::findOrFail($entryId);
         $entry->update(['reconciled' => ! $entry->reconciled]);
         unset($this->entries);
+    }
+
+    public function exportCsv(): StreamedResponse
+    {
+        $entries = $this->entries;
+        $runningBalance = $this->runningBalanceCents;
+
+        return response()->streamDownload(function () use ($entries, $runningBalance): void {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Time', 'Cashier', 'Type', 'Reason', 'Amount', 'Reconciled']);
+
+            foreach ($entries as $entry) {
+                fputcsv($handle, [
+                    $entry->created_at->format('H:i'),
+                    $entry->cashier->name,
+                    $entry->entry_type === CashbookEntryType::CashIn ? 'Cash in' : 'Cash out',
+                    $entry->reason,
+                    number_format($entry->signedAmountCents() / 100, 2, '.', ''),
+                    $entry->reconciled ? 'Yes' : 'No',
+                ]);
+            }
+
+            fputcsv($handle, ['', '', '', 'Running balance', number_format($runningBalance / 100, 2, '.', ''), '']);
+            fclose($handle);
+        }, "cashbook-{$this->shiftDate}.csv", ['Content-Type' => 'text/csv']);
     }
 
     public function render()

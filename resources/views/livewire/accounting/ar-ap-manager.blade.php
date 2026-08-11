@@ -8,12 +8,18 @@
         </div>
     </div>
 
-    <div class="mb-6 flex gap-1 rounded-lg bg-slate-100 p-1 text-sm font-medium">
-        <button wire:click="$set('tab', 'receivables')" @class(['flex-1 rounded-md py-2', 'bg-white shadow-sm text-slate-900' => $tab === 'receivables', 'text-slate-500' => $tab !== 'receivables'])>
-            Receivables ({{ $this->receivables->count() }})
-        </button>
-        <button wire:click="$set('tab', 'payables')" @class(['flex-1 rounded-md py-2', 'bg-white shadow-sm text-slate-900' => $tab === 'payables', 'text-slate-500' => $tab !== 'payables'])>
-            Payables ({{ $this->payables->count() }})
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex gap-1 rounded-lg bg-slate-100 p-1 text-sm font-medium">
+            <button wire:click="$set('tab', 'receivables')" @class(['flex-1 rounded-md py-2 px-3', 'bg-white shadow-sm text-slate-900' => $tab === 'receivables', 'text-slate-500' => $tab !== 'receivables'])>
+                Receivables ({{ $this->receivables->count() }})
+            </button>
+            <button wire:click="$set('tab', 'payables')" @class(['flex-1 rounded-md py-2 px-3', 'bg-white shadow-sm text-slate-900' => $tab === 'payables', 'text-slate-500' => $tab !== 'payables'])>
+                Payables ({{ $this->payables->count() }})
+            </button>
+        </div>
+
+        <button wire:click="exportCsv" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+            Export CSV
         </button>
     </div>
 

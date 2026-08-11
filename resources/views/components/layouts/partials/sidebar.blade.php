@@ -25,9 +25,15 @@
 
     <a href="{{ route('guests.index') }}" @class([
         'rounded-md px-3 py-2 font-medium transition',
-        'bg-brand-50 text-brand-700' => request()->routeIs('guests.*'),
-        'text-slate-600 hover:bg-brand-50 hover:text-brand-600' => ! request()->routeIs('guests.*'),
+        'bg-brand-50 text-brand-700' => request()->routeIs('guests.index', 'guests.show'),
+        'text-slate-600 hover:bg-brand-50 hover:text-brand-600' => ! request()->routeIs('guests.index', 'guests.show'),
     ])>Guests</a>
+
+    <a href="{{ route('guests.folio-summary') }}" @class([
+        'rounded-md px-3 py-2 font-medium transition',
+        'bg-brand-50 text-brand-700' => request()->routeIs('guests.folio-summary'),
+        'text-slate-600 hover:bg-brand-50 hover:text-brand-600' => ! request()->routeIs('guests.folio-summary'),
+    ])>Guest &amp; Folio Summary</a>
 
     <p class="mb-1 mt-4 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Operations</p>
     <a href="{{ route('rooms.index') }}" @class(['rounded-md px-3 py-2 font-medium transition', 'bg-brand-50 text-brand-700' => request()->routeIs('rooms.*'), 'text-slate-600 hover:bg-brand-50 hover:text-brand-600' => ! request()->routeIs('rooms.*')])>Rooms</a>

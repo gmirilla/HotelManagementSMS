@@ -23,6 +23,7 @@ use App\Livewire\Events\EventSpaceManager;
 use App\Livewire\FrontDesk\Dashboard as FrontDeskDashboard;
 use App\Livewire\FrontDesk\FolioShow;
 use App\Livewire\FrontDesk\WalkInCheckIn;
+use App\Livewire\Guests\GuestFolioSummary;
 use App\Livewire\Guests\GuestManager;
 use App\Livewire\Guests\GuestProfile;
 use App\Livewire\Housekeeping\TaskBoard;
@@ -51,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('rooms', RoomManager::class)->name('rooms.index');
 
     Route::get('guests', GuestManager::class)->name('guests.index');
+    Route::get('guests/reports/summary', GuestFolioSummary::class)->name('guests.folio-summary');
     Route::get('guests/{guest}', GuestProfile::class)->name('guests.show');
 
     Route::get('reservations', ReservationManager::class)->name('reservations.index');

@@ -10,6 +10,10 @@
         <div class="flex items-center gap-3">
             <x-text-input type="date" wire:model.live="shiftDate" class="mt-0" />
 
+            <button wire:click="exportCsv" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                Export CSV
+            </button>
+
             @can('accounting.manage')
                 <button wire:click="create" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">
                     New entry

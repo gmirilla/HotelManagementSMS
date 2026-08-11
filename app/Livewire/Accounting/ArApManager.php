@@ -14,6 +14,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('components.layouts.app')]
 #[Title('Receivables & Payables')]
@@ -83,6 +84,45 @@ class ArApManager extends Component
 
         $this->payingApId = null;
         unset($this->payables);
+    }
+
+    public function exportCsv(): StreamedResponse
+    {
+        if ($this->tab === 'receivables') {
+            $rows = [['Company', 'Due Date', 'Status', 'Amount', 'Paid', 'Outstanding']];
+            foreach ($this->receivables as $ar) {
+                $rows[] = [
+                    $ar->corporateAccount->company_name,
+                    $ar->due_date->format('Y-m-d'),
+                    ucfirst(str_replace('_', ' ', $ar->status->value)),
+                    number_format($ar->amount_cents / 100, 2, '.', ''),
+                    number_format($ar->paid_cents / 100, 2, '.', ''),
+                    number_format($ar->outstandingCents() / 100, 2, '.', ''),
+                ];
+            }
+            $filename = 'receivables-' . now()->toDateString() . '.csv';
+        } else {
+            $rows = [['Supplier', 'Due Date', 'Status', 'Amount', 'Paid', 'Outstanding']];
+            foreach ($this->payables as $ap) {
+                $rows[] = [
+                    $ap->supplier->name,
+                    $ap->due_date->format('Y-m-d'),
+                    ucfirst(str_replace('_', ' ', $ap->status->value)),
+                    number_format($ap->amount_cents / 100, 2, '.', ''),
+                    number_format($ap->paid_cents / 100, 2, '.', ''),
+                    number_format($ap->outstandingCents() / 100, 2, '.', ''),
+                ];
+            }
+            $filename = 'payables-' . now()->toDateString() . '.csv';
+        }
+
+        return response()->streamDownload(function () use ($rows): void {
+            $handle = fopen('php://output', 'w');
+            foreach ($rows as $row) {
+                fputcsv($handle, $row);
+            }
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 
     public function render()

@@ -16,16 +16,27 @@
         @endif
     </div>
 
-    <div class="mb-6 flex gap-1 rounded-lg bg-slate-100 p-1 text-sm font-medium">
-        <button wire:click="$set('tab', 'trial_balance')" @class(['flex-1 rounded-md py-2', 'bg-white shadow-sm text-slate-900' => $tab === 'trial_balance', 'text-slate-500' => $tab !== 'trial_balance'])>
-            Trial Balance
-        </button>
-        <button wire:click="$set('tab', 'profit_loss')" @class(['flex-1 rounded-md py-2', 'bg-white shadow-sm text-slate-900' => $tab === 'profit_loss', 'text-slate-500' => $tab !== 'profit_loss'])>
-            Profit &amp; Loss
-        </button>
-        <button wire:click="$set('tab', 'balance_sheet')" @class(['flex-1 rounded-md py-2', 'bg-white shadow-sm text-slate-900' => $tab === 'balance_sheet', 'text-slate-500' => $tab !== 'balance_sheet'])>
-            Balance Sheet
-        </button>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex gap-1 rounded-lg bg-slate-100 p-1 text-sm font-medium">
+            <button wire:click="$set('tab', 'trial_balance')" @class(['flex-1 rounded-md py-2 px-3', 'bg-white shadow-sm text-slate-900' => $tab === 'trial_balance', 'text-slate-500' => $tab !== 'trial_balance'])>
+                Trial Balance
+            </button>
+            <button wire:click="$set('tab', 'profit_loss')" @class(['flex-1 rounded-md py-2 px-3', 'bg-white shadow-sm text-slate-900' => $tab === 'profit_loss', 'text-slate-500' => $tab !== 'profit_loss'])>
+                Profit &amp; Loss
+            </button>
+            <button wire:click="$set('tab', 'balance_sheet')" @class(['flex-1 rounded-md py-2 px-3', 'bg-white shadow-sm text-slate-900' => $tab === 'balance_sheet', 'text-slate-500' => $tab !== 'balance_sheet'])>
+                Balance Sheet
+            </button>
+        </div>
+
+        <div class="flex gap-2">
+            <button wire:click="exportCsv" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                Export CSV
+            </button>
+            <button wire:click="exportPdf" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                Export PDF
+            </button>
+        </div>
     </div>
 
     @if ($tab === 'trial_balance' || $tab === 'profit_loss')
